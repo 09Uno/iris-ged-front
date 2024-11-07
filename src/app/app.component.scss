@@ -1,0 +1,21 @@
+:root {
+    /* Cores principais */
+    --primary-color: #094c8c; /* Azul primário */
+    --background-color: #f0f0f0; /* Cor de fundo da página */
+    --white-color: #ffffff; /* Branco */
+    --gray-color: #F5F5F5; /* Cinza claro */
+    --dark-gray-color: #333; /* Cinza escuro */
+    --light-gray-color: #888; /* Cinza claro para placeholders */
+    --border-color: #ccc; /* Cor da borda */
+    --shadow-color: rgba(0, 0, 0, 0.1); /* Sombra leve */
+    --item-bg-color: #F0F0F0; /* Cor de fundo dos itens */
+    --shadow-color-strong: rgba(0, 0, 0, 0.2); /* Sombra forte */
+    background-color: rgba(214, 176, 173, 0.133);/* Caminho para a imagem */
+    background-size: cover; /* Cobrir toda a tela */
+    background-repeat: no-repeat; /* Não repetir a imagem */
+    background-position: center center; /* Centralizar a imagem */
+    height: 100vh; /* Garante que o fundo ocupe toda a altura da viewport */
+    margin: 0; /* Remove a margem padrão */
+    padding: 0; /* Remove o padding padrão */
+    overflow-x: hidden; /* Impede o overflow horizontal */
+}

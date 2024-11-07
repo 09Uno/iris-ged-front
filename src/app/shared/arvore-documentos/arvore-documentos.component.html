@@ -1,0 +1,77 @@
+<app-tool-bar [title]="title"></app-tool-bar>
+<div class="container-fluid" style="height: 100vh; overflow: hidden;">
+  <div class="row">
+    <div class="form-group col-md-4 search-container d-flex align-items-center">
+      <input class="form-control search-input rounded-2 py-2" placeholder="Buscar" id="example-search-input"
+        (ngModelChange)="formatar(null)" (input)="formatar($event)" (keydown.enter)="realizarBusca()"
+        [ngModelOptions]="{standalone: true}" [(ngModel)]="identificadorProcesso" [disabled]="isLoading" />
+      <mat-icon class="search-icon cursor-pointer ml-2">search</mat-icon>
+      <button type="submit" class="btn btn-primary buscar" (click)="realizarBusca()"
+        [disabled]="isLoading">buscar</button>
+    </div>  
+
+    <div class="col-md-8 d-flex p-3 flex-wrap">
+      <!-- Botão para adicionar documentos externos -->
+      <button class="btn btn-secondary me-2 p-3 border" title="Adicionar Documento Externo" mat-button [routerLink]="['/inserir-arquivos-processos']">
+        <span class="material-icons">attach_file</span>
+      </button>
+      <!-- Botão para adicionar documentos editáveis -->
+      <button class="btn btn-secondary me-2 p-3 border" (click)="InserirDocumentoHtml()" title="Incluir Arquivos">
+        <span class="material-icons">note_add</span>
+      </button>
+      <!-- Botão para editar documentos -->
+      <button class="btn btn-secondary me-2 p-3 border" title="Editar Documento" *ngIf="documentoSelecionado">
+        <span class="material-icons">edit</span>
+      </button>
+      <!-- Botão para modificar a ordem dos documentos na árvore -->
+      <button class="btn btn-secondary me-2 p-3 border" title="Modificar Ordem dos Documentos" *ngIf="documentoSelecionado">
+        <span class="material-icons">swap_vert</span>
+      </button>
+      <!-- Botão para assinar documentos -->
+      <button class="btn btn-secondary me-2 p-3 border" title="Assinar Documento" *ngIf="documentoSelecionado">
+        <span class="material-icons">assignment_turned_in</span>
+      </button>
+      <!-- Botão para deletar documentos -->
+      <button class="btn btn-secondary me-2 p-3 border" title="Deletar Documento" *ngIf="documentoSelecionado">
+        <span class="material-icons">delete</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="row" style="height: calc(100vh - 100px);"> 
+    <!-- Ajuste a altura do row para ocupar o restante da tela -->
+    <div class="col-md-4 d-flex" style="height: 100%;">
+      <div class="card tree-container p-3" style="flex-grow: 1; height: 100%;">
+        <div *ngIf="mensagemErro" class="erroProcesso alert alert-danger">
+          {{ mensagemErro }}
+        </div>
+        <div class="documentTree" id="documentTree"></div>
+      </div>
+    </div>
+
+    <div class="col-md-8" style="height: 100%;">
+      <div class="card" style="height: 100%;">
+        <div class="card-header">
+          <h4>{{subTitle}}</h4>
+        </div>
+        <div class="card-body" style="height: calc(100% - 56px);">
+          
+          <ng-container *ngIf="mostrarEditor;">
+            <!-- <app-editor-html></app-editor-html> -->
+             <app-inserir-documento></app-inserir-documento>
+          </ng-container>
+
+          <ng-container *ngIf="documentoSelecionado;">
+            <iframe [src]="documentoSelecionado" width="100%" height="100%"></iframe>
+          </ng-container>
+
+        
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="progress-bar-loading" *ngIf="isLoading">
+  <div class="progress-bar-loading-value"></div>
+</div>
