@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { InserirDocumentoComponent } from './inserir-documento.component';
+import { InsertDocumentComponent } from './insert-document.component';
 
 describe('InserirDocumentoComponent', () => {
-  let component: InserirDocumentoComponent;
-  let fixture: ComponentFixture<InserirDocumentoComponent>;
+  let component: InsertDocumentComponent;
+  let fixture: ComponentFixture<InsertDocumentComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InserirDocumentoComponent]
+      imports: [InsertDocumentComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(InserirDocumentoComponent);
+    fixture = TestBed.createComponent(InsertDocumentComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

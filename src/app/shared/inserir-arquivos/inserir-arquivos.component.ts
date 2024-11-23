@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { ToolBarComponentComponent } from "../../features/tool-bar.component/tool-bar.component.component";
+import { ToolBarComponent } from "../../features/tool-bar.component/tool-bar.component";
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-inserir-arquivos',
   standalone: true,
   imports: [
-    ToolBarComponentComponent,
+    ToolBarComponent,
     MatIconModule
    
   ],

@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterOutlet } from '@angular/router';
 
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -13,7 +14,8 @@ import { RouterOutlet } from '@angular/router';
     CommonModule,
     MatIconModule,
     MatButtonModule,
-    MatToolbarModule
+    MatToolbarModule, 
+    
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'

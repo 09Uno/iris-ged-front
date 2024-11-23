@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ArvoreDocumentosComponent } from './arvore-documentos.component';
+import { ArvoreDocumentosComponent } from './file-manager.component';
 
 describe('ArvoreDocumentosComponent', () => {
   let component: ArvoreDocumentosComponent;

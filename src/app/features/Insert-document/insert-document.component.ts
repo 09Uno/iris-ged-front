@@ -1,0 +1,225 @@
+import { DocumentItem, documentItem, DocumentFetchDTO, documentFetchDTO, htmlDocumentItem } from '../../models/documentItem';
+import { SnackBarService } from '../../utils/openSnackBar';
+import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Output, ViewChild, Input } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { Router, RouterOutlet } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule } from '@angular/forms';
+import { attachmentTypes, fileType } from '../../models/fileType';
+import { JsTreeUtil } from '../../utils/jsTreeUtils';
+import GedApiService from '../../gedApiService';
+import { DocumentService } from '../../services/documentService';
+import { ToolBarComponent } from '../tool-bar.component/tool-bar.component';
+
+@Component({
+  selector: 'app-insert-document',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatIconModule,
+    MatButtonModule,
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    FormsModule,
+  ],
+  templateUrl: './insert-document.component.html',
+  styleUrl: './insert-document.component.scss',
+})
+export class InsertDocumentComponent {
+  title = '';
+  isLoading = false;
+  subtitle = '';
+  documentTemplate = '';
+  documentTemplateText = '';
+  fileTypeOptions: { value: string; text: string }[] = [];
+  attachmentTypeOptions: { value: string; text: string }[] = [];
+  documentItem = documentItem;
+  documentItemHtml = htmlDocumentItem;
+  documentFetchDTO = documentFetchDTO;
+  imagePath = 'assets/brazil.png';
+  @Input() modal: number = 0;
+
+  selectedFile: string | File | Blob = '';
+
+  @Input() processIdentifier: string = '';
+  @Output() fetchDocuments = new EventEmitter<void>();
+  @Output() startDocumentCallback = new EventEmitter<{ docID: number; extension: string }>();
+
+  constructor(
+    private router: Router,
+    private gedApi: GedApiService,
+    private snackService: SnackBarService,
+    private documentService: DocumentService
+  ) {}
+
+  ngOnInit(): void {
+    this.attachmentTypeOptions = attachmentTypes;
+    this.fileTypeOptions = fileType;
+    this.documentItemHtml.ProcessIdentifier = this.processIdentifier;
+    this.documentItem.ProcessIdentifier = this.processIdentifier;
+    this.modal = 0;
+  }
+
+  getImageUrl(imagePath: string): string {
+    return `/${imagePath}`;
+  }
+
+  startDocument(id: number, ext: string) {
+    this.startDocumentCallback.emit({ docID: id, extension: ext });
+  }
+
+  performFetch() {
+    return new Promise<void>((resolve, reject) => {
+      this.fetchDocuments.emit();
+      resolve();
+    });
+  }
+
+  navigateToTemplates() {
+    this.modal = 1;
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
+    }
+  }
+
+  async saveDocuments() {
+    if (
+      this.documentTemplate === '1' &&
+      (!this.documentItem.FileName ||
+        !this.documentItem.DocumentType ||
+        !this.documentItem.ProcessIdentifier ||
+        !this.documentItem.DocumentDate ||
+        !this.selectedFile)
+    ) {
+      this.snackService.openSnackBar('All fields must be filled!', 'Close');
+      return;
+    }
+
+    this.isLoading = true;
+
+    try {
+      (await this.documentService.addDocument(this.documentItem, this.selectedFile as File)).subscribe(
+        (response: any) => {
+          const data = response?.body || response;
+          this.documentFetchDTO = data;
+          const doc = data.savedDocument;
+
+
+          this.snackService.openSnackBar('Document successfully added!', 'Close');
+          this.clearFields();
+          this.clearHtmlFields();
+          this.isLoading = false;
+          this.modal = 4;
+
+          JsTreeUtil.destroyJsTree('documentTree');
+          this.performFetch();
+          this.startDocument(doc.id, doc.extension);
+
+        },
+        (error) => {
+          console.error('Error saving document:', error);
+
+          this.snackService.openSnackBar('Error saving the document!', 'Close');
+          this.clearFields();
+          this.clearHtmlFields();
+          this.isLoading = false;
+        }
+      );
+    } catch (error) {
+      console.error('Unexpected error saving document:', error);
+      this.snackService.openSnackBar('Unexpected error saving the document!', 'Close');
+      this.isLoading = false;
+    }
+  }
+
+  async saveHtmlDocuments() {
+    if (
+      !this.documentItemHtml.FileName ||
+      !this.documentItemHtml.DocumentType ||
+      !this.documentItemHtml.ProcessIdentifier ||
+      !this.documentItemHtml.DocumentDate
+    ) {
+      this.snackService.openSnackBar('All fields must be filled!', 'Close');
+      return;
+    }
+
+    try {
+      (await this.documentService.addHtmlDocument(this.documentItemHtml)).subscribe(
+        async (response: any) => {
+          const data = response?.body || response;
+          const doc = data.savedDocument;
+
+          this.snackService.openSnackBar('Document successfully added!', 'Close');
+
+          this.isLoading = false;
+          this.modal = 4;
+
+          this.startDocument(doc.id, doc.extension);
+
+          this.clearFields();
+          this.clearHtmlFields();
+        },
+        (error) => {
+          console.error('Error saving document:', error);
+          this.snackService.openSnackBar('Error saving the document!', 'Close');
+          this.clearFields();
+          this.clearHtmlFields();
+
+          this.isLoading = false;
+          this.modal = 1;
+        }
+      );
+    } catch (error) {
+      console.error('Error calling addHtmlDocument:', error);
+    }
+  }
+
+  updateDocument() {}
+
+  clearFields() {
+    this.documentItem.FileName = '';
+    this.documentItem.DocumentDate = '';
+    this.documentItem.Description = '';
+    this.documentItem.FileContent = '';
+    this.documentItem.FileExtension = '';
+    this.documentItemHtml.DocumentType = 'defaultValue';
+    this.selectedFile = '';
+    this.modal = 1;
+    const fileInput = document.getElementById('files') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
+
+  clearHtmlFields() {
+    this.documentItemHtml.FileName = '';
+    this.documentItemHtml.DocumentType = 'defaultValue';
+    this.documentItemHtml.Description = '';
+    this.selectedFile = '';
+    this.modal = 1;
+    const fileInput = document.getElementById('files') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
+
+  async selectTemplate() {
+    if (this.documentTemplate === '1') {
+      this.modal = 2;
+    } else if (this.documentTemplate === '2') {
+      this.modal = 3;
+      this.title = this.title;
+    } else {
+      this.modal = 4;
+    }
+  }
+}

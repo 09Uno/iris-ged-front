@@ -19,16 +19,16 @@ import { Router } from '@angular/router';
      MatMenuModule,
      RouterModule
   ],
-  templateUrl: './tool-bar.component.component.html',
-  styleUrl: './tool-bar.component.component.scss'
+  templateUrl: './tool-bar.component.html',
+  styleUrl: './tool-bar.component.scss'
 })
 
-export class ToolBarComponentComponent {
+export class ToolBarComponent {
   @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
   @Input() title : string = '';
 
 
-  logo = 'assets/logo_big.png';
+  logo = 'assets/logo.png';
   
   someMethod() {
     this.trigger.openMenu();

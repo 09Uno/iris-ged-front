@@ -1,12 +1,17 @@
-<div style="display: flex; flex-direction: column; gap: 20px;">
+<div style="display: flex; flex-direction: column; gap: 5px;">
   <!-- Quill Editor -->
+   
+
+  <div class="acoes-container">
+    <button class="btn btn-success acoes" title="Salvar Documento" (click)="salvarDocumento()">
+      <span class="material-icons">save</span>
+    </button>
+  </div>
+
   <quill-editor 
     [ngModelOptions]="{ standalone: true }" 
     [(ngModel)]="content" 
-    style="height: 550px"
+    style="height: 500px"
     [modules]="quillModules">
   </quill-editor>
-
- 
-
 </div>

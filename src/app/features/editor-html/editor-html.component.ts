@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
@@ -17,12 +17,9 @@ import 'quill/dist/quill.snow.css';
 })
 export class EditorHtmlComponent implements AfterViewInit {
   @ViewChild('iframe') iframe!: ElementRef;
-  
-  content = `<p><strong>Reunião do Conselho</strong></p>
-            <p>Data: <em>2024-11-10</em></p>
-            <p><u>Pauta</u>: Discussão sobre orçamento.</p>`;
+  @Input() content: string = ''; // O tipo agora é sempre string
 
-  allowHtmlPaste = true; // Controle para colar HTML ou texto
+  allowHtmlPaste = true;
   quillModules = {
     toolbar: [
       [{ 'font': [] }],
@@ -59,7 +56,7 @@ export class EditorHtmlComponent implements AfterViewInit {
           </style>
         </head>
         <body contenteditable="true">
-          <p>Edite este conteúdo como se fosse um documento de texto.</p>
+          <p>${this.content}</p> <!-- Insere o conteúdo HTML aqui -->
         </body>
       </html>
     `;
@@ -84,5 +81,9 @@ export class EditorHtmlComponent implements AfterViewInit {
     if (iframeDocument) {
       iframeDocument.execCommand(command, false, value);
     }
+  }
+
+  salvarDocumento(){
+    
   }
 }

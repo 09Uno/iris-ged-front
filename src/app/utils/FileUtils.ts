@@ -1,16 +1,39 @@
 export class FileUtils {
-  /**
-   * Extrai a extensão do arquivo a partir do nome do arquivo, incluindo o ponto.
-   * @param file O objeto File do qual extrair a extensão.
-   * @returns A extensão do arquivo como string (incluindo o ponto), ou uma string vazia se não houver extensão.
-   */
-  static pegarExtArquivo(file: File): string {
-    // Obtém o nome do arquivo
+
+  static getFileExtension(file: File): string {
     const fileName = file.name;
-    // Divide o nome do arquivo em partes usando '.' e obtém a última parte, incluindo o ponto
     const parts = fileName.split('.');
-    
-    // Verifica se há partes suficientes para formar uma extensão
     return parts.length > 1 ? `.${parts.pop()}` : '';
+  }
+ 
+  static getMimeType(extension: string): string {
+    switch (extension.toLowerCase()) {
+      case '.html':
+        return 'text/html';
+      case '.pdf':
+        return 'application/pdf';
+      case '.jpg':
+      case '.jpeg':
+        return 'image/jpeg';
+      case '.png':
+        return 'image/png';
+      case '.txt':
+        return 'text/plain';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+
+  static getDocumentIcon(fileType: string): string {
+    console.log(fileType);
+    switch (fileType) {
+      case '.pdf':
+        return 'assets/pdf.svg';
+      case '.html':
+        return 'assets/html.svg';
+      default:
+        return 'assets/default-icon.svg';
+    }
   }
 }
