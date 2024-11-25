@@ -1,4 +1,4 @@
-import { DocumentItem, HtmlDocumentItem } from '../models/documentItem';
+import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit } from '../models/document/documentItemModel';
 import { Injectable } from '@angular/core';
 import { catchError, Observable, of, tap } from 'rxjs';
 import { FileUtils } from '../utils/FileUtils';
@@ -8,7 +8,7 @@ import GedApiService from '../gedApiService';
   providedIn: 'root',
 })
 export class DocumentService {
-  constructor(private gedApi: GedApiService) {}
+  constructor(private gedApi: GedApiService) { }
 
   async fetchDocumentsByProcess(processIdentifier: string): Promise<Observable<any>> {
     return (await this.gedApi.fetchDocumentsByProcess(processIdentifier)).pipe(
@@ -42,7 +42,6 @@ export class DocumentService {
   }
 
   async getHtmlContent(documentBlob: Blob): Promise<string | null> {
-    // Verifies the MIME type to ensure it's HTML
     if (documentBlob.type !== 'text/html') {
       console.error('The selected file is not an HTML document.');
       return null;
@@ -56,4 +55,10 @@ export class DocumentService {
       reader.readAsText(documentBlob);
     });
   }
+
+  updateDocumentHtml(documentItem: HtmlItemDocumentToEdit): Observable<any> {
+    return this.gedApi.updateHtmlDocument(documentItem);
+  }
+  
+
 }

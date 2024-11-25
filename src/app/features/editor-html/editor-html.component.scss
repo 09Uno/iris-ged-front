@@ -11,16 +11,17 @@
   
   .acoes-container{
     display: flex;
-    justify-content: end;
+    justify-content: start;
   }
  /* Ajuste para o botão pequeno */
 .acoes {
   padding: 5px 10px;
+  margin: 2px;
   font-size: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  align-self: flex-end;
+  align-self: flex-start;
   border-radius: 15%;
   height: 30px; /* Tamanho do botão */
   width: 30px;  /* Tamanho do botão */

@@ -1,3 +1,12 @@
+
+.main {
+  
+  background-size: cover; 
+  background-position: center; 
+  background-repeat: no-repeat; 
+}
+
+
 .progress-bar-loading {
   height: 20px;
   background-color: rgba(5, 114, 206, 0.2);
@@ -12,6 +21,8 @@
   border-radius: 5px; /* Bordas arredondadas para um visual melhor */
 }
 
+
+
 .progress-bar-loading-value {
   width: 100%;
   height: 100%;
@@ -25,7 +36,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.459); 
+  background-color: rgba(255, 255, 255, 0.692); 
   z-index: 1000; 
   display: flex;
   align-items: center;
@@ -67,12 +78,26 @@
   margin-right: 8px;
 }
 
-.card {
+.card-bkg-empty {
   margin-top: 0;
   margin-left: 0;
   padding: 10px;
   min-height: 700px;
   max-height: 700px;
+
+}
+
+.card-bkg-filed{
+  margin-top: 0;
+  margin-left: 0;
+  padding: 10px;
+  min-height: 700px;
+  max-height: 700px;
+  background-size: cover; 
+  background-position: center; 
+  background-image: 
+  linear-gradient(to top, rgba(255, 255, 255, 0.829), rgba(255, 255, 255)), 
+  url('/assets/cardbkgfull.jpg'); 
 }
 
 .card-button {

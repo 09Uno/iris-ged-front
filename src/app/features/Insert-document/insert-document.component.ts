@@ -1,4 +1,4 @@
-import { DocumentItem, documentItem, DocumentFetchDTO, documentFetchDTO, htmlDocumentItem } from '../../models/documentItem';
+import { DocumentItem, DocumentFetchDTO, } from '../../models/document/documentItemModel';
 import { SnackBarService } from '../../utils/openSnackBar';
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output, ViewChild, Input } from '@angular/core';
@@ -13,6 +13,8 @@ import { JsTreeUtil } from '../../utils/jsTreeUtils';
 import GedApiService from '../../gedApiService';
 import { DocumentService } from '../../services/documentService';
 import { ToolBarComponent } from '../tool-bar.component/tool-bar.component';
+import { documentFetchDTO, documentItem, htmlDocumentItem } from '../../models/document/documentItemModel.config';
+import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-insert-document',
@@ -55,7 +57,7 @@ export class InsertDocumentComponent {
     private gedApi: GedApiService,
     private snackService: SnackBarService,
     private documentService: DocumentService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.attachmentTypeOptions = attachmentTypes;
@@ -91,6 +93,7 @@ export class InsertDocumentComponent {
     }
   }
 
+
   async saveDocuments() {
     if (
       this.documentTemplate === '1' &&
@@ -100,43 +103,32 @@ export class InsertDocumentComponent {
         !this.documentItem.DocumentDate ||
         !this.selectedFile)
     ) {
-      this.snackService.openSnackBar('All fields must be filled!', 'Close');
+      this.snackService.openSnackBar('Todos os campos devem ser preenchidos!', 'Fechar');
       return;
     }
 
     this.isLoading = true;
-
+    
     try {
-      (await this.documentService.addDocument(this.documentItem, this.selectedFile as File)).subscribe(
-        (response: any) => {
-          const data = response?.body || response;
-          this.documentFetchDTO = data;
-          const doc = data.savedDocument;
+      const response = await lastValueFrom(await this.documentService.addDocument(this.documentItem, this.selectedFile as File));
+      const data = response?.body || response;
+      const doc = data.savedDocument;
 
+      this.snackService.openSnackBar('Documento Adicionado com Sucesso!', 'Fechar');
+      this.clearFields();
+      this.clearHtmlFields();
+      this.isLoading = false;
+      this.modal = 4;
 
-          this.snackService.openSnackBar('Document successfully added!', 'Close');
-          this.clearFields();
-          this.clearHtmlFields();
-          this.isLoading = false;
-          this.modal = 4;
+      JsTreeUtil.destroyJsTree('documentTree');
+      this.performFetch();
+      this.startDocument(doc.id, doc.extension);
 
-          JsTreeUtil.destroyJsTree('documentTree');
-          this.performFetch();
-          this.startDocument(doc.id, doc.extension);
-
-        },
-        (error) => {
-          console.error('Error saving document:', error);
-
-          this.snackService.openSnackBar('Error saving the document!', 'Close');
-          this.clearFields();
-          this.clearHtmlFields();
-          this.isLoading = false;
-        }
-      );
     } catch (error) {
       console.error('Unexpected error saving document:', error);
-      this.snackService.openSnackBar('Unexpected error saving the document!', 'Close');
+      this.snackService.openSnackBar('Erro ao salvar o documento!', 'Fechar');
+      this.clearFields();
+      this.clearHtmlFields();
       this.isLoading = false;
     }
   }
@@ -153,37 +145,29 @@ export class InsertDocumentComponent {
     }
 
     try {
-      (await this.documentService.addHtmlDocument(this.documentItemHtml)).subscribe(
-        async (response: any) => {
-          const data = response?.body || response;
-          const doc = data.savedDocument;
+      const response = await lastValueFrom(this.documentService.addHtmlDocument(this.documentItemHtml));
+      const data = response?.body || response;
+      const doc = data.savedDocument;
 
-          this.snackService.openSnackBar('Document successfully added!', 'Close');
+      this.snackService.openSnackBar('Document successfully added!', 'Close');
+      this.isLoading = false;
+      this.modal = 4;
 
-          this.isLoading = false;
-          this.modal = 4;
+      this.startDocument(doc.id, doc.extension);
+      this.clearFields();
+      this.clearHtmlFields();
 
-          this.startDocument(doc.id, doc.extension);
-
-          this.clearFields();
-          this.clearHtmlFields();
-        },
-        (error) => {
-          console.error('Error saving document:', error);
-          this.snackService.openSnackBar('Error saving the document!', 'Close');
-          this.clearFields();
-          this.clearHtmlFields();
-
-          this.isLoading = false;
-          this.modal = 1;
-        }
-      );
     } catch (error) {
       console.error('Error calling addHtmlDocument:', error);
+      this.snackService.openSnackBar('Error saving the document!', 'Close');
+      this.clearFields();
+      this.clearHtmlFields();
+      this.isLoading = false;
+      this.modal = 1;
     }
   }
 
-  updateDocument() {}
+
 
   clearFields() {
     this.documentItem.FileName = '';
@@ -219,7 +203,7 @@ export class InsertDocumentComponent {
       this.modal = 3;
       this.title = this.title;
     } else {
-      this.modal = 4;
+      this.modal = 1;
     }
   }
 }

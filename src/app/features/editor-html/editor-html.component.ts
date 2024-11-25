@@ -1,8 +1,14 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, Input } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, Input, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
 import 'quill/dist/quill.snow.css';
+import { DocumentService } from '../../services/documentService';
+import { htmlItemDocumentToEdit } from '../../models/document/documentItemModel.config';
+import { HtmlItemDocumentToEdit } from '../../models/document/documentItemModel';
+import { mapToHtmlItemDocumentToEdit } from './editor.config';
+import { lastValueFrom } from 'rxjs';
+import { JsTreeUtil } from '../../utils/jsTreeUtils';
 
 @Component({
   selector: 'app-editor-html',
@@ -17,7 +23,23 @@ import 'quill/dist/quill.snow.css';
 })
 export class EditorHtmlComponent implements AfterViewInit {
   @ViewChild('iframe') iframe!: ElementRef;
-  @Input() content: string = ''; // O tipo agora é sempre string
+  @Input() content: string = '';
+  @Input() processIdentifier : string = '';
+  @Input() documentId : number = 0;
+  @Output() startDocumentCallback = new EventEmitter<{ docID: number; extension: string }>();
+  documentItem : HtmlItemDocumentToEdit = {...htmlItemDocumentToEdit}
+
+
+
+  constructor(
+    private documentService: DocumentService
+  ) { }
+
+  startDocument(id: number, ext: string) {
+    this.startDocumentCallback.emit({ docID: id, extension: ext });
+  }
+
+
 
   allowHtmlPaste = true;
   quillModules = {
@@ -83,7 +105,19 @@ export class EditorHtmlComponent implements AfterViewInit {
     }
   }
 
-  salvarDocumento(){
-    
+  
+  async updateDocumentHtml() {
+    let item = mapToHtmlItemDocumentToEdit(this.processIdentifier, this.documentId, this.content);
+  
+    try {
+      if (item !== null) {
+        const result = await lastValueFrom(this.documentService.updateDocumentHtml(item));
+        console.log('Document updated:', result.updatedDocument.id);
+        this.startDocument(result.updatedDocument.id, result.updatedDocument.extension);
+      }
+    } catch (error) {
+      console.error('Error updating document:', error);
+    }
   }
+  
 }

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DocumentManagerComponent } from './document-manager.component';
 
-import { ArvoreDocumentosComponent } from './file-manager.component';
 
-describe('ArvoreDocumentosComponent', () => {
-  let component: ArvoreDocumentosComponent;
-  let fixture: ComponentFixture<ArvoreDocumentosComponent>;
+describe('DocumentManagerComponent', () => {
+  let component: DocumentManagerComponent;
+  let fixture: ComponentFixture<DocumentManagerComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ArvoreDocumentosComponent]
+      imports: [DocumentManagerComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ArvoreDocumentosComponent);
+    fixture = TestBed.createComponent(DocumentManagerComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

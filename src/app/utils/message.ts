@@ -1,15 +1,15 @@
 export class MessageUtil {
   static displayErrorMessage(context: any, message: string, duration: number = 10000) {
-    context.errorMessage = message;
+    context.messages.errorMessage = message;
     setTimeout(() => {
-      context.errorMessage = null;
+      context.messages.errorMessage = null;
     }, duration);
   }
 
   static displayAlertMessage(context: any, message: string, duration: number = 100000) {
-    context.alertMessage = message;
+    context.messages.alertMessage = message;
     setTimeout(() => {
-      context.alertMessage = null;
+      context.messages.alertMessage = null;
     }, duration);
   }
 }

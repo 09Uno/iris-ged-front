@@ -1,0 +1,87 @@
+<app-tool-bar [title]="viewController.title"></app-tool-bar>
+<div class="container-fluid main" style="height: 100vh; overflow: hidden;">
+  <div class="row">
+    <div class="form-group col-md-4 search-container d-flex align-items-center">
+      <input class="form-control search-input rounded-2 py-2" placeholder="Buscar" id="example-search-input"
+        (ngModelChange)="format(null)" (input)="format($event)" (keydown.enter)="searchDocuments(callback)"
+        [ngModelOptions]="{standalone: true}" [(ngModel)]="managerAttributes.processIdentifierInput" [disabled]="uiControllers.isLoading" />
+      <mat-icon class="search-icon cursor-pointer ml-2">search</mat-icon>
+      <button type="submit" class="btn btn-secondary buscar" (click)="searchDocumentsFromParent(callback)"
+        [disabled]="!managerAttributes.processIdentifierInput || uiControllers.isLoading">
+        buscar
+      </button>
+    </div>
+
+    <div style="height: 85px;" class="col-md-8 d-flex p-3 flex-wrap">
+      <!-- Botão para adicionar documentos-->
+      <button class="btn btn-primary me-2 p-3 border" title="Incluir Documentos"  (click)="insertHtmlDocument()"
+        *ngIf="uiControllers.validProcess">
+        <span class="material-icons">note_add</span>
+      </button>
+      <!-- Botão para editar documentos -->
+      <button class="btn btn-primary me-2 p-3 border" title="Editar Documento" (click)="editHtmlDocument()"
+        *ngIf="managerAttributes.selectedDocument && uiControllers.editableDocument">
+        <span class="material-icons">edit</span>
+      </button>
+      <!-- Botão para modificar a ordem dos documentos na árvore -->
+      <button class="btn btn-primary me-2 p-3 border" title="Modificar Ordem dos Documentos"
+        *ngIf="uiControllers.validProcess && managerAttributes.documentCount >= 2">
+        <span class="material-icons">swap_vert</span>
+      </button>
+      <!-- Botão para assinar documentos -->
+      <button class="btn btn-primary me-2 p-3 border" title="Assinar Documento" *ngIf="managerAttributes.selectedDocument">
+        <span class="material-icons">assignment_turned_in</span>
+      </button>
+      <!-- Botão para deletar documentos -->
+      <button class="btn btn-primary me-2 p-3 border" title="Deletar Documento" *ngIf="managerAttributes.selectedDocument">
+        <span class="material-icons">delete</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="row" style="height: calc(100vh - 100px);">
+    <!-- Ajuste a altura do row para ocupar o restante da tela -->
+    <div class="col-md-4 d-flex" style="height: 100%;">
+      <div [ngClass]="htmlClassAndId.cardJsTreeClass"  style="flex-grow: 1; height: 100%;">
+        <div *ngIf="messages.errorMessage" [innerHTML]="messages.errorMessage" class="erroProcesso alert alert-danger">
+        </div>
+        <div *ngIf="messages.alertMessage" [innerHTML]="messages.alertMessage" class="erroProcesso alert alert-warning">
+        </div>
+        <div class="documentTree" id="documentTree"></div>
+      </div>
+    </div>
+
+    <div class="col-md-8" style="height: 100%;">
+      <div [ngClass]="htmlClassAndId.cardClass" style="height: 100%;">
+        <div class="card-header">
+          <h4>{{viewController.subtitle}}</h4>
+        </div>
+        <div class="card-body"  style="height: calc(100% - 56px);">
+
+          <ng-container *ngIf="visibleButtons.showInsertDocumentButton">
+            <app-insert-document [modal]="viewController.selectedModalNumber" [processIdentifier]="managerAttributes.processIdentifier"
+              (fazerBuscaDocumentos)="searchDocuments(callback)" (startDocumentCallback)="startDocument($event)">
+            </app-insert-document>
+          </ng-container>
+
+          <ng-container *ngIf="uiControllers.showEditor;">
+            <app-editor-html [processIdentifier]="managerAttributes.processIdentifier" [documentId]="managerAttributes.documentId"
+             [content]="managerAttributes.selectedDocumentString" (startDocumentCallback)="startDocument($event)"></app-editor-html>
+          </ng-container>
+
+          <ng-container *ngIf="managerAttributes.selectedDocument;">
+            <iframe [src]="managerAttributes.selectedDocument" width="100%" height="100%"></iframe>
+          </ng-container>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="loading-overlay" *ngIf="uiControllers.isLoading">
+  <div class="progress-bar-loading" *ngIf="uiControllers.isLoading">
+    <div class="progress-bar-loading-value"></div>
+  </div>
+</div>

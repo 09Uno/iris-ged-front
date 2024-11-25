@@ -1,4 +1,4 @@
-import { DocumentFetchDTO } from '../models/documentItem';
+import { DocumentFetchDTO } from '../models/document/documentItemModel';
 import { FileUtils } from '../utils/FileUtils';
 
 declare var $: any;
