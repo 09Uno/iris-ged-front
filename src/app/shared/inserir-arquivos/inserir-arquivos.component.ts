@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ToolBarComponent } from "../../features/tool-bar.component/tool-bar.component";
 import { MatIconModule } from '@angular/material/icon';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-inserir-arquivos',
@@ -16,4 +17,14 @@ import { MatIconModule } from '@angular/material/icon';
 export class InserirArquivosComponent {
   title = 'Iniciar Processo';
   tiposProcesso: string[] = ['Eleições: Procedimentos Gerais', 'Outro Processo'];
+
+  constructor(
+    private titleService: Title
+  ) { }
+  
+
+  ngOnInit() {
+    this.titleService.setTitle('Gerenciar Arquivos');
+  }
+ 
 }

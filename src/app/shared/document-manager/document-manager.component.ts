@@ -15,6 +15,7 @@ import { InsertDocumentComponent } from '../../features/Insert-document/insert-d
 import { ToolBarComponent } from '../../features/tool-bar.component/tool-bar.component';
 import { FormatUtils } from '../../utils/Formater';
 import { defaultViewController, defaultManagerAttributes, defaultHtmlClassAndId, defaultMessages, defaultUiControllers, defaultVisibleButtons } from './document-manager-core/document-manager.config';
+import { Title } from '@angular/platform-browser';
 
 
 
@@ -45,13 +46,14 @@ export class DocumentManagerComponent implements OnInit {
 
   constructor(
     private sanitizer: DomSanitizer,
-    private documentService: DocumentService
+    private documentService: DocumentService,
+    private titleService: Title
   ) { }
 
   ngOnInit() {
+    this.titleService.setTitle('Gerenciar Documentos');
     this.htmlClassAndId.cardJsTreeClass = 'card card-bkg-filed';
     this.htmlClassAndId.cardClass = 'card card-bkg-filed';
-
   }
 
   // Inicializa a árvore de documentos (JsTree)
@@ -109,6 +111,8 @@ export class DocumentManagerComponent implements OnInit {
             this.managerAttributes.selectedDocument = null;
             // this.htmlClassAndId.cardJsTreeClass = 'card card-bkg-empty';
             this.initJsTree();
+            this.htmlClassAndId.cardJsTreeClass = 'card card-bkg-empty';
+            this.htmlClassAndId.cardClass = 'card card-bkg-filed';
 
             callback(result);
           } else if (!result) {
@@ -123,7 +127,7 @@ export class DocumentManagerComponent implements OnInit {
               this,
               `Houve um erro ao tentar buscar os documentos para o processo.<br>
               O processo não está registrado no sistema. <br>
-              <a href="#" target="_blank" rel="noopener noreferrer">
+              <a href="https://iris.creaba.org.br/admin/processos/create" target="_blank" rel="noopener noreferrer">
                   Adicionar novo processo.
               </a>
               `
@@ -176,7 +180,7 @@ export class DocumentManagerComponent implements OnInit {
     const { docID, extension } = event;
     this.viewController.selectedModalNumber = 0
     this.uiControllers.isLoading = true;
-    this.viewController.subtitle = 'Ver Documento';
+    this.viewController.subtitle = 'Ver Documento.';
     this.uiControllers.showEditor = false;
     this.managerAttributes.documentId = docID;
 
@@ -212,7 +216,7 @@ export class DocumentManagerComponent implements OnInit {
 
   // Edita um documento HTML
   editHtmlDocument() {
-    this.viewController.subtitle = 'Editar Documento';
+    this.viewController.subtitle = 'Editar Documento.';
     this.managerAttributes.selectedDocument = null;
     this.uiControllers.isLoading = true;
     this.uiControllers.showEditor = true;

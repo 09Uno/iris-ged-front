@@ -9,7 +9,7 @@
 
   <mat-toolbar class="main" color="primary">
     <!-- Botão de Menu Lateral -->
-    <div class="menu-container">
+    <div *ngIf="isAuthenticated$ | async" class="menu-container">
 
       <div class="menu-items">
 
@@ -20,7 +20,7 @@
               Gestão de Arquivos
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-              <li><a class="dropdown-item" [routerLink]="['/arvore-documentos']">Gerenciar Documentos</a></li>
+              <li><a class="dropdown-item" [routerLink]="['/documentos']">Gerenciar Documentos</a></li>
               <li><a class="dropdown-item" [routerLink]="['/inserir-arquivos']">Gerenciar Gravações de Reuniões</a></li>
             </ul>
           </div>
@@ -33,8 +33,9 @@
 
     <!-- Ícone de Logout -->
     <div class="user-info">
-      <span>Olá, Bruno Araujo de Oliveira!</span>
-      <button class="btn" id="logout-item" (click)="logout()">Sair</button>
+      <span *ngIf="isAuthenticated$ | async" >Olá, {{userName}}!</span>
+      <button *ngIf="!(isAuthenticated$ | async)" class="btn" id="logout-item" (click)="signIn()">Entrar</button>
+      <button *ngIf="isAuthenticated$ | async" class="btn" id="logout-item" (click)="signOut()">Sair</button>
     </div>
 
   </mat-toolbar>

@@ -2,22 +2,23 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
 import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit } from './models/document/documentItemModel';
-import { formatDate } from '@angular/common';
+import { AuthService } from './services/authservices';
 
-export const apiUrl = 'http://localhost:5020/';
-//export const apiUrl = 'http://187.32.49.178:5005/'
+export const apiUrl = 'https://localhost:5001/';
 
 @Injectable({
   providedIn: 'root'
 })
 export default class GedApiService {
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private authService: AuthService) { }
+  
 
+  
+  
   // Método para salvar um documento
   async saveDocument(item: DocumentItem): Promise<Observable<any>> {
     const formData = new FormData();
-
     formData.append('FileName', item.FileName);
     formData.append('DocumentType', item.DocumentType);
     formData.append('ProcessIdentifier', item.ProcessIdentifier);
@@ -25,16 +26,17 @@ export default class GedApiService {
     formData.append('FileContent', item.FileContent);
     formData.append('Description', item.Description);
     formData.append('FileExtension', item.FileExtension);
-
-    console.log(item.FileContent);
-
+    
     try {
-      return this.http.post<any>(`${apiUrl}api/Document/SaveDocs`, formData, { observe: 'response' }).pipe(
+      const token = await this.authService.getToken();
+
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+      return this.http.post<any>(`${apiUrl}api/Document/SaveDocs`, formData, { headers, observe: 'response' }).pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error in saveDocument request:', error);
           console.error('Status:', error.status);
           console.error('Message:', error.message);
-          console.error('Error:', error.error);
           return throwError(error);
         })
       );
@@ -45,7 +47,8 @@ export default class GedApiService {
   }
 
   // Método para salvar documento HTML
-  saveHtmlDocument(item: HtmlDocumentItem): Observable<any> {
+  async saveHtmlDocument(item: HtmlDocumentItem): Promise<Observable<any>> {
+        
     const formData = new FormData();
 
     formData.append('FileName', item.FileName);
@@ -54,51 +57,55 @@ export default class GedApiService {
     formData.append('DocumentDate', item.DocumentDate);
     formData.append('Description', item.Description);
 
-    try {
-      return this.http.post<any>(`${apiUrl}api/Document/SaveDocsHtml`, formData, { observe: 'response' }).pipe(
+    return this.authService.getToken().then((token: any) => {
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      return this.http.post<any>(`${apiUrl}api/Document/SaveDocsHtml`, formData, { headers }).pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error in saveHtmlDocument request:', error);
           console.error('Status:', error.status);
           console.error('Message:', error.message);
-          console.error('Error:', error.error);
           return throwError(error);
         })
       );
-    } catch (error) {
-      console.error('Error while saving HTML document:', error);
-      throw error;
-    }
+    });
   }
 
-  updateHtmlDocument(item: HtmlItemDocumentToEdit): Observable<any> {
+  // Método para atualizar documento HTML
+  async updateHtmlDocument(item: HtmlItemDocumentToEdit): Promise<Observable<any>> {
+
     const formData = new FormData();
     formData.append('id', item.id.toString());
     formData.append('ProcessIdentifier', item.processIdentifier);
     formData.append('HtmlContent', item.htmlContent);
-  
-    return this.http.post<any>(`${apiUrl}api/Document/EditDocsHtml`, formData).pipe(
-      catchError((error: HttpErrorResponse) => {
-        console.error('Error in saveHtmlDocument request:', error);
-        console.error('Status:', error.status);
-        console.error('Message:', error.message);
-        console.error('Error:', error.error);
-  
-        return throwError(() => new Error('Document update failed'));
-      })
-    );
+
+    return this.authService.getToken().then((token: any) => {
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      return this.http.post<any>(`${apiUrl}api/Document/EditDocsHtml`, formData, { headers }).pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error in updateHtmlDocument request:', error);
+          return throwError(() => new Error('Document update failed'));
+        })
+      );
+    });
   }
-  
 
   // Método para buscar documentos por identificador de processo
   async fetchDocumentsByProcess(identifier: string): Promise<Observable<DocumentItem[]>> {
-    let encodedString = encodeURIComponent(identifier);
-    return this.http.get<DocumentItem[]>(`${apiUrl}api/Document/getDocs?processIdentifier=${encodedString}`);
+    const token = await this.authService.getToken();
+    
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    const encodedString = encodeURIComponent(identifier);
+    return this.http.get<DocumentItem[]>(`${apiUrl}api/Document/getDocs?processIdentifier=${encodedString}`, { headers });
   }
 
   // Método para buscar arquivo de um documento
-  fetchDocumentFile(documentId: number): Observable<Blob> {
-    return this.http.get(`${apiUrl}api/Document/DownloadDocument?documentId=${documentId}`, {
-      responseType: 'blob'
+  async fetchDocumentFile(documentId: number): Promise<Observable<Blob>> {
+
+    return this.authService.getToken().then((token: any) => {
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      return this.http.get(`${apiUrl}api/Document/DownloadDocument?documentId=${documentId}`, {
+        responseType: 'blob', headers
+      });
     });
   }
 }

@@ -111,7 +111,7 @@ export class EditorHtmlComponent implements AfterViewInit {
   
     try {
       if (item !== null) {
-        const result = await lastValueFrom(this.documentService.updateDocumentHtml(item));
+        const result = await lastValueFrom(await this.documentService.updateDocumentHtml(item));
         console.log('Document updated:', result.updatedDocument.id);
         this.startDocument(result.updatedDocument.id, result.updatedDocument.extension);
       }

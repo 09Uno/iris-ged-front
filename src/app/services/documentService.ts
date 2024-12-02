@@ -21,7 +21,7 @@ export class DocumentService {
   }
 
   async fetchDocumentFile(documentId: number): Promise<Observable<Blob>> {
-    return this.gedApi.fetchDocumentFile(documentId).pipe(
+    return (await this.gedApi.fetchDocumentFile(documentId)).pipe(
       tap(() => console.log('Document successfully loaded.')),
       catchError((error) => {
         console.error('Error loading document:', error);
@@ -37,7 +37,7 @@ export class DocumentService {
     return this.gedApi.saveDocument(documentItem);
   }
 
-  addHtmlDocument(htmlDocumentItem: HtmlDocumentItem): Observable<any> {
+  addHtmlDocument(htmlDocumentItem: HtmlDocumentItem): Promise<Observable<any>> {
     return this.gedApi.saveHtmlDocument(htmlDocumentItem);
   }
 
@@ -56,7 +56,7 @@ export class DocumentService {
     });
   }
 
-  updateDocumentHtml(documentItem: HtmlItemDocumentToEdit): Observable<any> {
+  updateDocumentHtml(documentItem: HtmlItemDocumentToEdit): Promise<Observable<any>> {
     return this.gedApi.updateHtmlDocument(documentItem);
   }
   

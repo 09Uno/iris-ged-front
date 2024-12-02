@@ -11,10 +11,10 @@ import { FormsModule } from '@angular/forms';
 import { attachmentTypes, fileType } from '../../models/fileType';
 import { JsTreeUtil } from '../../utils/jsTreeUtils';
 import GedApiService from '../../gedApiService';
-import { DocumentService } from '../../services/documentService';
 import { ToolBarComponent } from '../tool-bar.component/tool-bar.component';
 import { documentFetchDTO, documentItem, htmlDocumentItem } from '../../models/document/documentItemModel.config';
 import { lastValueFrom } from 'rxjs';
+import { DocumentService } from '../../services/documentService';
 
 @Component({
   selector: 'app-insert-document',
@@ -145,7 +145,7 @@ export class InsertDocumentComponent {
     }
 
     try {
-      const response = await lastValueFrom(this.documentService.addHtmlDocument(this.documentItemHtml));
+      const response = await lastValueFrom(await this.documentService.addHtmlDocument(this.documentItemHtml));
       const data = response?.body || response;
       const doc = data.savedDocument;
 
