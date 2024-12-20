@@ -17,16 +17,59 @@
 .acoes {
   padding: 5px 10px;
   margin: 2px;
-  font-size: 14px;
+  font-size: 12px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  align-self: flex-start;
-  border-radius: 15%;
-  height: 30px; /* Tamanho do botão */
-  width: 30px;  /* Tamanho do botão */
+  justify-content: space-between;
+  align-self: space-between;
+  border-radius: 5px;
+  height: 25px; /* Tamanho do botão */
+  width: 70px;  /* Tamanho do botão */
+  background-color: #c5c3c3;
+  color: white;
 }
 
 .acoes span.material-icons {
   font-size: 20px; /* Tamanho do ícone */
+}
+
+
+.modal-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  overflow: hidden;
+  resize: both; /* Permite redimensionar */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: #bdcbf1;
+  border-bottom: 1px solid #ccc;
+  cursor: move; /* Permite mover */
+}
+
+.modal-content {
+  flex: 1;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  justify-self: center;
+}
+
+.iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }

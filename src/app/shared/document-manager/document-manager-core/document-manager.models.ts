@@ -24,6 +24,7 @@ export interface VisibleButtons {
 
 
 export interface DocumentManagerAtributes {
+    name : string,
     processIdentifier: string,
     processIdentifierInput: string,
     documents: DocumentFetchDTO | any,

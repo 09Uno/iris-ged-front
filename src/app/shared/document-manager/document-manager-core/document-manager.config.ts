@@ -22,6 +22,7 @@ export const defaultUiControllers : UiControllerElements ={
 }
 
 export const defaultManagerAttributes: DocumentManagerAtributes = {
+  name: '',
   processIdentifier: '',
   processIdentifierInput: '',
   documents: null, 

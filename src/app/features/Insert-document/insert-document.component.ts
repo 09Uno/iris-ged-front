@@ -1,4 +1,3 @@
-import { DocumentItem, DocumentFetchDTO, } from '../../models/document/documentItemModel';
 import { SnackBarService } from '../../utils/openSnackBar';
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output, ViewChild, Input } from '@angular/core';
@@ -11,7 +10,6 @@ import { FormsModule } from '@angular/forms';
 import { attachmentTypes, fileType } from '../../models/fileType';
 import { JsTreeUtil } from '../../utils/jsTreeUtils';
 import GedApiService from '../../gedApiService';
-import { ToolBarComponent } from '../tool-bar.component/tool-bar.component';
 import { documentFetchDTO, documentItem, htmlDocumentItem } from '../../models/document/documentItemModel.config';
 import { lastValueFrom } from 'rxjs';
 import { DocumentService } from '../../services/documentService';
@@ -50,7 +48,7 @@ export class InsertDocumentComponent {
 
   @Input() processIdentifier: string = '';
   @Output() fetchDocuments = new EventEmitter<void>();
-  @Output() startDocumentCallback = new EventEmitter<{ docID: number; extension: string }>();
+  @Output() startDocumentCallback = new EventEmitter<{ docID: number; extension: string, name : string }>();
 
   constructor(
     private router: Router,
@@ -71,8 +69,8 @@ export class InsertDocumentComponent {
     return `/${imagePath}`;
   }
 
-  startDocument(id: number, ext: string) {
-    this.startDocumentCallback.emit({ docID: id, extension: ext });
+  startDocument(id: number, ext: string, name: string) {
+    this.startDocumentCallback.emit({ docID: id, extension: ext, name });
   }
 
   performFetch() {
@@ -122,7 +120,7 @@ export class InsertDocumentComponent {
 
       JsTreeUtil.destroyJsTree('documentTree');
       this.performFetch();
-      this.startDocument(doc.id, doc.extension);
+      this.startDocument(doc.id, doc.extension, doc.name);
 
     } catch (error) {
       console.error('Unexpected error saving document:', error);
@@ -140,7 +138,7 @@ export class InsertDocumentComponent {
       !this.documentItemHtml.ProcessIdentifier ||
       !this.documentItemHtml.DocumentDate
     ) {
-      this.snackService.openSnackBar('All fields must be filled!', 'Close');
+      this.snackService.openSnackBar('Todos os campos precisam ser preenchidos!', 'Fechar');
       return;
     }
 
@@ -149,17 +147,17 @@ export class InsertDocumentComponent {
       const data = response?.body || response;
       const doc = data.savedDocument;
 
-      this.snackService.openSnackBar('Document successfully added!', 'Close');
+      this.snackService.openSnackBar('Documento adicionado com sucesso!', 'Fechar');
       this.isLoading = false;
       this.modal = 4;
 
-      this.startDocument(doc.id, doc.extension);
+      this.startDocument(doc.id, doc.extension, doc.name);
       this.clearFields();
       this.clearHtmlFields();
 
     } catch (error) {
       console.error('Error calling addHtmlDocument:', error);
-      this.snackService.openSnackBar('Error saving the document!', 'Close');
+      this.snackService.openSnackBar('Erro ao salvar documento!', 'Fechar');
       this.clearFields();
       this.clearHtmlFields();
       this.isLoading = false;

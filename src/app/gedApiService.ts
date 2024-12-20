@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, throwError, lastValueFrom } from 'rxjs';
 import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit } from './models/document/documentItemModel';
 import { AuthService } from './services/authservices';
 
@@ -69,6 +69,25 @@ export default class GedApiService {
       );
     });
   }
+
+  async downloadDocumentAsPdf(documentId: number): Promise<Observable<any>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      
+      const response  =  this.http.get(`${apiUrl}api/Document/DownloadDocumetAsPdf?documentId=${documentId}`, {
+        headers,
+        responseType: 'blob' as 'json'
+      });
+  
+      return response ; // Retorna o Blob
+    } catch (error) {
+      console.error('Erro ao baixar o documento:', error);
+      throw error; // Lança o erro para ser tratado externamente
+    }
+  }
+  
+
 
   // Método para atualizar documento HTML
   async updateHtmlDocument(item: HtmlItemDocumentToEdit): Promise<Observable<any>> {

@@ -1,20 +1,29 @@
-<div style="display: flex; flex-direction: column; gap: 5px;">
-  <!-- Quill Editor -->
-   
-
-  <div class="acoes-container">
-    <button class="btn btn-success acoes" title="Salvar Documento" (click)="updateDocumentHtml()">
-      <span class="material-icons">save</span>
-    </button>
-    <button class="btn btn-danger acoes" title="Salvar Documento">
-      <span class="material-icons">cancel</span>
+<div class="modal-container">
+  <div class="modal-header">
+    <span></span>
+    <button class="close-button" (click)="closeDocument()">
+      <span class="material-icons">close</span>
     </button>
   </div>
-
-  <quill-editor 
-    [ngModelOptions]="{ standalone: true }" 
-    [(ngModel)]="content" 
-    style="height: 500px"
-    [modules]="quillModules">
-  </quill-editor>
+  <div class="modal-content">
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <!-- Quill Editor -->
+     
+      <div class="acoes-container editor-container" >
+        <button class="btn  acoes" title="Salvar Documento" (click)="updateDocumentHtml()">
+          <span class="material-icons">save</span>
+          Salvar
+        </button>
+        <!-- <button class="btn btn-danger acoes" title="Cancelar" >
+          <span class="material-icons">cancel</span>
+        </button> -->
+      </div>
+      <quill-editor 
+        [ngModelOptions]="{ standalone: true }" 
+        [(ngModel)]="content" 
+        style="height: 700px;"
+        [modules]="quillModules">
+      </quill-editor>
+    </div>
+  </div>
 </div>

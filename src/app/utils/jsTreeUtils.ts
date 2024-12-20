@@ -16,7 +16,7 @@ export class JsTreeUtil {
     elementId: string, 
     documents: any[], 
     processIdentifier: string, 
-    onSelectCallback: (id: number, extension: string) => void
+    onSelectCallback: (id: number, extension: string, name: string) => void
   ): void {
     $(`#${elementId}`).jstree('destroy').empty();
     $(`#${elementId}`).jstree({
@@ -34,7 +34,8 @@ export class JsTreeUtil {
     $(`#${elementId}`).on('select_node.jstree', (event: any, data: any) => {
       const selectedDocumentId = parseInt(data.node.id, 10);
       const extension = data.node.a_attr.extension;
-      onSelectCallback(selectedDocumentId, extension);
+      const name = data.node.a_attr.name;
+      onSelectCallback(selectedDocumentId, extension, name);
     });
   }
 
@@ -51,7 +52,10 @@ export class JsTreeUtil {
           id: doc.id.toString(),
           text: doc.fileName,
           icon: FileUtils.getDocumentIcon(doc.fileExtension),
-          a_attr: { extension: doc.fileExtension }
+          a_attr: {
+             extension: doc.fileExtension,
+             name: doc.fileName,
+           }
         }))
       }
     ];

@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, Input, EventEmitter, Output } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, EventEmitter, Output, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuillModule } from 'ngx-quill';
@@ -8,7 +8,8 @@ import { htmlItemDocumentToEdit } from '../../models/document/documentItemModel.
 import { HtmlItemDocumentToEdit } from '../../models/document/documentItemModel';
 import { mapToHtmlItemDocumentToEdit } from './editor.config';
 import { lastValueFrom } from 'rxjs';
-import { JsTreeUtil } from '../../utils/jsTreeUtils';
+import Quill from 'quill';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-editor-html',
@@ -23,28 +24,12 @@ import { JsTreeUtil } from '../../utils/jsTreeUtils';
 })
 export class EditorHtmlComponent implements AfterViewInit {
   @ViewChild('iframe') iframe!: ElementRef;
-  @Input() content: string = '';
-  @Input() processIdentifier : string = '';
-  @Input() documentId : number = 0;
-  @Output() startDocumentCallback = new EventEmitter<{ docID: number; extension: string }>();
-  documentItem : HtmlItemDocumentToEdit = {...htmlItemDocumentToEdit}
-
-
-
-  constructor(
-    private documentService: DocumentService
-  ) { }
-
-  startDocument(id: number, ext: string) {
-    this.startDocumentCallback.emit({ docID: id, extension: ext });
-  }
-
-
+  @Output() startDocumentCallback = new EventEmitter<{ docID: number; extension: string; name: string }>();
+  documentItem: HtmlItemDocumentToEdit = { ...htmlItemDocumentToEdit };
 
   allowHtmlPaste = true;
   quillModules = {
     toolbar: [
-      [{ 'font': [] }],
       [{ 'size': ['small', false, 'large', 'huge'] }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'align': [] }],
@@ -53,12 +38,41 @@ export class EditorHtmlComponent implements AfterViewInit {
       [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'script': 'sub' }, { 'script': 'super' }],
       [{ 'color': [] }, { 'background': [] }],
-      ['link', 'image', 'video'],
-      ['clean']
-    ]
+      ['link', 'image'],
+      ['clean'],
+    ],
+    history: {
+      delay: 1000,    // Atraso para agrupamento de ações
+      maxStack: 50,   // Limite de estados armazenados
+      userOnly: true, // Apenas alterações do usuário contam no histórico
+    },
   };
 
+  content: string;
+  processIdentifier: string;
+  documentId: number;
+  
+  private quillEditor: Quill | null = null;
+
+  constructor(
+    private documentService: DocumentService,
+    public dialogRef: MatDialogRef<EditorHtmlComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    this.content = data.content;
+    this.processIdentifier = data.processIdentifier;
+    this.documentId = data.documentId;
+
+    const Font = Quill.import('formats/font') as any;
+    Font.whitelist = ['roboto', 'montserrat', 'arial', 'times-new-roman', 'courier'];
+    Quill.register(Font, true);
+  }
+
   ngAfterViewInit() {
+    this.initializeIframe();
+  }
+
+  private initializeIframe() {
     const iframeElement = this.iframe.nativeElement;
     iframeElement.srcdoc = `
       <!DOCTYPE html>
@@ -68,9 +82,9 @@ export class EditorHtmlComponent implements AfterViewInit {
           <title>Editor HTML</title>
           <style>
             body {
-              font-family: Arial, sans-serif;
               padding: 20px;
               line-height: 1.6;
+              font-family: 'Arial', sans-serif;
             }
             p {
               margin: 0;
@@ -78,25 +92,33 @@ export class EditorHtmlComponent implements AfterViewInit {
           </style>
         </head>
         <body contenteditable="true">
-          <p>${this.content}</p> <!-- Insere o conteúdo HTML aqui -->
+          ${this.content || ''}
         </body>
       </html>
     `;
   }
 
-  // Configuração para interceptar o comportamento de colagem
   onEditorCreated(editor: any) {
-    const editorInstance = editor;
-
-    // Interceptando o comportamento de colagem
-    editorInstance.clipboard.addMatcher(Node.TEXT_NODE, (node: any) => {
+    editor.clipboard.addMatcher(Node.TEXT_NODE, (node: any) => {
       if (!this.allowHtmlPaste) {
-        // Colar como texto simples, removendo tags HTML
         return document.createTextNode(node.textContent);
       }
-      return node;  // Mantém as tags HTML se a opção estiver ativada
+      return node;
     });
   }
+
+  undo() {
+    if (this.quillEditor) {
+      this.quillEditor.history.undo();
+    }
+  }
+
+  redo() {
+    if (this.quillEditor) {
+      this.quillEditor.history.redo();
+    }
+  }
+
 
   execCmd(command: string, value: string | null = null) {
     const iframeDocument = this.iframe.nativeElement.contentDocument || this.iframe.nativeElement.contentWindow.document;
@@ -105,19 +127,27 @@ export class EditorHtmlComponent implements AfterViewInit {
     }
   }
 
-  
   async updateDocumentHtml() {
-    let item = mapToHtmlItemDocumentToEdit(this.processIdentifier, this.documentId, this.content);
-  
+    const item = mapToHtmlItemDocumentToEdit(this.processIdentifier, this.documentId, this.content);
+
+    if (!item) {
+      console.error('Failed to map document item');
+      return;
+    }
+
     try {
-      if (item !== null) {
-        const result = await lastValueFrom(await this.documentService.updateDocumentHtml(item));
-        console.log('Document updated:', result.updatedDocument.id);
-        this.startDocument(result.updatedDocument.id, result.updatedDocument.extension);
-      }
+      const result = await lastValueFrom(await this.documentService.updateDocumentHtml(item));
+      this.startDocumentCallback.emit({
+        docID: result.updatedDocument.id,
+        extension: result.updatedDocument.extension,
+        name: result.updatedDocument.name,
+      });
     } catch (error) {
       console.error('Error updating document:', error);
     }
   }
-  
+
+  closeDocument() {
+    this.dialogRef.close();
+  }
 }

@@ -1,9 +1,8 @@
-import { VisibleButtons, UiControllerElements } from './document-manager-core/document-manager.models';
+import { FileUtils } from './../../utils/FileUtils';
 import { Component, OnInit } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
 import { catchError, of, tap } from 'rxjs';
 import { JsTreeUtil } from '../../utils/jsTreeUtils';
-import { FileUtils } from '../../utils/FileUtils';
 import { MessageUtil } from '../../utils/message';
 import { DocumentService } from '../../services/documentService';
 import { FormsModule } from '@angular/forms';
@@ -16,8 +15,19 @@ import { ToolBarComponent } from '../../features/tool-bar.component/tool-bar.com
 import { FormatUtils } from '../../utils/Formater';
 import { defaultViewController, defaultManagerAttributes, defaultHtmlClassAndId, defaultMessages, defaultUiControllers, defaultVisibleButtons } from './document-manager-core/document-manager.config';
 import { Title } from '@angular/platform-browser';
+import { saveAs } from 'file-saver';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 
 
+import { TDocumentDefinitions } from 'pdfmake/interfaces';
+import htmlToPdfmake from 'html-to-pdfmake';
+
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatButtonModule } from '@angular/material/button';
+import { Overlay } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-file-manager',
@@ -28,9 +38,10 @@ import { Title } from '@angular/platform-browser';
     MatIconModule,
     FormsModule,
     RouterModule,
-    EditorHtmlComponent,
-    InsertDocumentComponent
-
+    InsertDocumentComponent,
+    MatSidenavModule,
+    MatButtonModule,
+    
   ],
   templateUrl: './document-manager.component.html',
   styleUrls: ['./document-manager.component.scss'],
@@ -39,21 +50,29 @@ export class DocumentManagerComponent implements OnInit {
 
   viewController = { ...defaultViewController };
   visibleButtons = { ...defaultVisibleButtons };
-  uiControllers = { ...defaultUiControllers}
+  uiControllers = { ...defaultUiControllers }
   managerAttributes = { ...defaultManagerAttributes };
   messages = { ...defaultMessages };
   htmlClassAndId = { ...defaultHtmlClassAndId };
+  sidenavOpened = false;
+  overlayRef: any;
+
+  private dialogRef: MatDialogRef<EditorHtmlComponent> | null = null;
 
   constructor(
     private sanitizer: DomSanitizer,
     private documentService: DocumentService,
-    private titleService: Title
-  ) { }
-
+    private titleService: Title,
+    private overlay: Overlay,
+    private dialog: MatDialog
+  ) {
+    (window as any).pdfMake.vfs = pdfFonts.vfs;
+  }
   ngOnInit() {
     this.titleService.setTitle('Gerenciar Documentos');
     this.htmlClassAndId.cardJsTreeClass = 'card card-bkg-filed';
     this.htmlClassAndId.cardClass = 'card card-bkg-filed';
+
   }
 
   // Inicializa a árvore de documentos (JsTree)
@@ -63,8 +82,8 @@ export class DocumentManagerComponent implements OnInit {
       this.htmlClassAndId.elementId,
       this.managerAttributes.documents,
       this.managerAttributes.processIdentifier,
-      (docID: number, extension: string) => {
-        this.selectDocument({ docID, extension }, () => { });
+      (docID: number, extension: string, name: string) => {
+        this.selectDocument({ docID, extension, name }, () => { });
       }
     );
   }
@@ -97,10 +116,10 @@ export class DocumentManagerComponent implements OnInit {
     this.messages.errorMessage = null;
     this.messages.alertMessage = null;
 
-    if(this.managerAttributes.source !== 'children'){
+    if (this.managerAttributes.source !== 'children') {
       this.managerAttributes.processIdentifier = this.managerAttributes.processIdentifierInput;
     }
-    
+
     (await this.documentService.fetchDocumentsByProcess(this.managerAttributes.processIdentifier))
       .pipe(
         tap((result: any[]) => {
@@ -173,29 +192,53 @@ export class DocumentManagerComponent implements OnInit {
       });
   }
 
-  // Seleciona um documento para visualização ou edição
-  async selectDocument(event: { docID: number; extension: string;   }, callback: () => void) {
-    
-    
-    const { docID, extension } = event;
-    this.viewController.selectedModalNumber = 0
+  async selectDocument(event: { docID: number; extension: string; name: string }, callback: () => void) {
+    const { docID, extension, name } = event;
+
+    this.viewController.selectedModalNumber = 0;
     this.uiControllers.isLoading = true;
     this.viewController.subtitle = 'Ver Documento.';
     this.uiControllers.showEditor = false;
     this.managerAttributes.documentId = docID;
-
+    this.managerAttributes.name = name;
 
     (await this.documentService.fetchDocumentFile(docID))
       .pipe(
-        tap((result) => {
+        tap(async (result) => {
           const mimeType = FileUtils.getMimeType(extension);
-          this.uiControllers.editableDocument = extension === '.html';
-          this.visibleButtons.showInsertDocumentButton = true;
-          this.uiControllers.validProcess = true;
-          this.managerAttributes.documentBlob = new Blob([result], { type: mimeType });
-          this.managerAttributes.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(
-            URL.createObjectURL(this.managerAttributes.documentBlob)
-          );
+          const blob = new Blob([result], { type: mimeType });
+          this.managerAttributes.documentBlob = blob;
+
+          if (extension === '.html') {
+            // Ler o conteúdo do blob como texto
+            const content = await blob.text();
+
+            // Adicionar <header> ao HTML carregado no iframe
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(content, 'text/html');
+            const existingHeader = doc.querySelector('header');
+            if (existingHeader) {
+              existingHeader.replaceWith(FileUtils.createNewHeader());
+            } else {
+              const body = doc.querySelector('body');
+              if (body) {
+                body.insertBefore(FileUtils.createNewHeader(), body.firstChild);
+              }
+            }
+
+            // Criar um blob atualizado para o iframe
+            const updatedBlob = new Blob([doc.documentElement.outerHTML], { type: mimeType });
+            this.managerAttributes.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(
+              URL.createObjectURL(updatedBlob)
+            );
+
+            // O conteúdo original será usado no Quill Editor
+            this.uiControllers.editableDocument = true;
+          } else {
+            this.managerAttributes.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(
+              URL.createObjectURL(blob)
+            );
+          }
 
           this.uiControllers.isLoading = false;
           this.htmlClassAndId.cardClass = 'card card-bkg-empty';
@@ -214,10 +257,87 @@ export class DocumentManagerComponent implements OnInit {
       .subscribe();
   }
 
+  toggleSidenav() {
+    this.sidenavOpened = !this.sidenavOpened;
+  }
+
+
+  async downloadDocumentAsPdf() {
+    this.uiControllers.isLoading = true;
+
+    try {
+      const blob: Blob = this.managerAttributes.documentBlob;
+
+      if (blob) {
+        const fileName =
+          'IRIS GED - ' +
+          this.managerAttributes.documentId.toString() +
+          ' - ' +
+          this.managerAttributes.name;
+
+        if (blob.type === 'application/pdf') {
+          // Caso seja um PDF, apenas ofereça para baixar.
+          saveAs(blob, fileName + '.pdf');
+        } else if (blob.type === 'text/html') {
+          // Caso seja um HTML, converta para um PDF formatado.
+          const htmlContent = await this.documentService.getHtmlContent(blob);
+
+          if (htmlContent) {
+            // Adicionar o <header> dinamicamente ao HTML
+            const sanitizedHtml = FileUtils.sanitizeHtmlContent(htmlContent);
+            const updatedHtmlWithHeader = this.addHeaderToHtml(sanitizedHtml);
+
+            // Converte as imagens no HTML para base64, se necessário
+            const updatedHtml = await FileUtils.convertImagesInHtmlToBase64(
+              updatedHtmlWithHeader
+            );
+
+            // Converte HTML para formato compatível com pdfMake
+            const converted = htmlToPdfmake(updatedHtml);
+
+            const documentDefinition: TDocumentDefinitions = {
+              content: converted,
+            };
+
+            // Gera e baixa o PDF
+            pdfMake.createPdf(documentDefinition).download(fileName + '.pdf');
+          } else {
+            console.error('Erro: O conteúdo HTML está vazio.');
+          }
+        }
+      } else {
+        console.error(
+          'Erro ao baixar o documento: O conteúdo do arquivo não é válido.'
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao baixar o documento:', error);
+    } finally {
+      this.uiControllers.isLoading = false;
+    }
+  }
+
+  // Método auxiliar para adicionar o <header> ao HTML
+  addHeaderToHtml(html: string): string {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    const existingHeader = doc.querySelector('header');
+    if (existingHeader) {
+      existingHeader.replaceWith(FileUtils.createNewHeader());
+    } else {
+      const body = doc.querySelector('body');
+      if (body) {
+        body.insertBefore(FileUtils.createNewHeader(), body.firstChild);
+      }
+    }
+
+    return doc.documentElement.outerHTML;
+  }
   // Edita um documento HTML
   editHtmlDocument() {
     this.viewController.subtitle = 'Editar Documento.';
-    this.managerAttributes.selectedDocument = null;
+    // this.managerAttributes.selectedDocument = null;
     this.uiControllers.isLoading = true;
     this.uiControllers.showEditor = true;
     this.viewController.selectedModalNumber = 0;
@@ -226,28 +346,72 @@ export class DocumentManagerComponent implements OnInit {
 
     if (!this.managerAttributes.documentBlob) {
       console.error('No document loaded for editing.');
+      this.uiControllers.isLoading = false;  // Garantir que o loading seja desativado
       return;
     }
 
     this.documentService.getHtmlContent(this.managerAttributes.documentBlob).then((content) => {
       if (content) {
         this.managerAttributes.selectedDocumentString = content;
+
+        // Chama o modal para editar o conteúdo
+
         this.uiControllers.showEditor = true;
         this.visibleButtons.showInsertDocumentButton = true;
         this.uiControllers.validProcess = true;
         this.uiControllers.isLoading = false;
+
+        this.openEditor()
       } else {
         this.uiControllers.isLoading = false;
+        console.error('Failed to load document content.');
       }
+    }).catch((error) => {
+      this.uiControllers.isLoading = false;
+      console.error('Error while fetching document content:', error);
     });
   }
-  
+
+  openEditor() {
+
+    if (this.dialogRef) {
+      this.dialogRef.close();
+      this.dialogRef = null;
+    }
+
+    this.dialogRef = this.dialog.open(EditorHtmlComponent, {
+      width: '80%',
+      height: '90%',
+      maxWidth: '100vw',
+      panelClass: 'custom-dialog-container',
+      disableClose: true,
+      data: {
+        processIdentifier: this.managerAttributes.processIdentifier,
+        documentId: this.managerAttributes.documentId,
+        content: this.managerAttributes.selectedDocumentString,
+      },
+
+    });
+
+    this.dialogRef.componentInstance.startDocumentCallback.subscribe((result: { docID: number; extension: string; name: string }) => {
+      this.startDocument(result);
+    });
+  }
+
+
+  closeModal() {
+    if (this.dialogRef) {
+      this.dialogRef.close();
+      this.dialogRef = null;
+    }
+  }
+
   searchDocumentsFromParent(callback: (result: any) => void) {
     this.managerAttributes.source = 'parent';
     this.searchDocuments(callback);
   }
   // Inicia o processo de seleção e edição de documento
-  startDocument(event: { docID: number; extension: string }) {
+  startDocument(event: { docID: number; extension: string; name: string }) {
     this.searchDocuments((result) => {
       this.selectDocument(event, () => {
         event.extension === '.html' ? this.editHtmlDocument() : null;

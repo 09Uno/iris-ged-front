@@ -32,11 +32,11 @@
               }
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
               "src/styles.scss",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/jstree/dist/themes/default/style.min.css",
               "node_modules/quill/dist/quill.snow.css"
-
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
@@ -70,6 +70,11 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "ssl": false,
+            "sslCert": "./cert.pem",
+            "sslKey": "./key.pem"
+          },
           "configurations": {
             "production": {
               "buildTarget": "ged:build:production"
@@ -99,6 +104,7 @@
               }
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
               "src/styles.scss"
             ],
             "scripts": []

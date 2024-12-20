@@ -1,6 +1,6 @@
 import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit } from '../models/document/documentItemModel';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, of, tap } from 'rxjs';
+import { catchError, lastValueFrom, Observable, of, tap } from 'rxjs';
 import { FileUtils } from '../utils/FileUtils';
 import GedApiService from '../gedApiService';
 
@@ -30,6 +30,17 @@ export class DocumentService {
     );
   }
 
+  async downloadDocumentAsPdf(documentId: number): Promise<Blob> {
+    try {
+      const response = lastValueFrom(await this.gedApi.downloadDocumentAsPdf(documentId));
+      console.log('Document successfully loaded.');
+      return response;
+    } catch (error) {
+      console.error('Error loading document:', error);
+      return new Blob(); 
+    }
+  }
+  
   async addDocument(documentItem: DocumentItem, selectedFile: File): Promise<Observable<any>> {
     documentItem.FileExtension = FileUtils.getFileExtension(selectedFile);
     console.log(documentItem);

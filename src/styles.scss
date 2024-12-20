@@ -5,6 +5,39 @@ $secondary-color: #2ecc71;
 $font-stack: 'Roboto', sans-serif;
 $base-margin: 16px;
 
+/* Registrar as classes das fontes */
+.ql-font-roboto { font-family: 'Roboto', sans-serif; }
+.ql-font-montserrat { font-family: 'Montserrat', sans-serif; }
+.ql-font-arial { font-family: Arial, sans-serif; }
+.ql-font-times-new-roman { font-family: 'Times New Roman', serif; }
+.ql-font-courier { font-family: 'Courier New', monospace; }
+
+/* Ajustar o nome das fontes no seletor do Quill */
+.ql-snow .ql-picker.ql-font .ql-picker-label::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item::before {
+  content: attr(data-value);
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="roboto"]::before {
+  content: "Roboto";
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="montserrat"]::before {
+  content: "Montserrat";
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before {
+  content: "Arial";
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="times-new-roman"]::before {
+  content: "Times New Roman";
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="courier"]::before {
+  content: "Courier New";
+}
+
 
 
 html, body { height: 100%; }
@@ -13,3 +46,5 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 body {
     background-color: #f1f4f9 !important; 
 }
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

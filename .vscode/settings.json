@@ -1,5 +1,8 @@
 {
     "cSpell.words": [
-        "Msal"
-    ]
+        "bolditalics",
+        "Msal",
+        "pdfmake"
+    ],
+    "FSharp.suggestGitignore": false
 }
