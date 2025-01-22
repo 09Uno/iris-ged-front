@@ -1,4 +1,8 @@
-<app-tool-bar [title]="viewController.title"></app-tool-bar>
+<app-tool-bar 
+[title]="viewController.title"
+  [isProfessional]="isProfessional"
+  [isCorporative]="isCorporative"
+></app-tool-bar>
 <div class="container-fluid main" style="height: 100vh; overflow: hidden;">
   <div class="row">
     <div class="form-group col-md-4 search-container d-flex align-items-center">

@@ -9,10 +9,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
 import { attachmentTypes, fileType } from '../../models/fileType';
 import { JsTreeUtil } from '../../utils/jsTreeUtils';
-import GedApiService from '../../gedApiService';
+import GedApiService from '../../ged.api.service';
 import { documentFetchDTO, documentItem, htmlDocumentItem } from '../../models/document/documentItemModel.config';
 import { lastValueFrom } from 'rxjs';
-import { DocumentService } from '../../services/documentService';
+import { DocumentService } from '../../services/documents/document.service';
 
 @Component({
   selector: 'app-insert-document',

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ToolBarComponent } from "../../features/tool-bar.component/tool-bar.component";
+import { ToolBarComponent } from "../../../features/tool-bar.component/tool-bar.component";
 import { MatIconModule } from '@angular/material/icon';
 import { Title } from '@angular/platform-browser';
 
@@ -17,6 +17,8 @@ import { Title } from '@angular/platform-browser';
 export class InserirArquivosComponent {
   title = 'Iniciar Processo';
   tiposProcesso: string[] = ['Eleições: Procedimentos Gerais', 'Outro Processo'];
+  isProfessional: boolean = false;
+  isCorporative: boolean = true;
 
   constructor(
     private titleService: Title

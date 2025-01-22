@@ -1,8 +1,8 @@
-import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit } from '../models/document/documentItemModel';
+import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit } from '../../models/document/documentItemModel';
 import { Injectable } from '@angular/core';
 import { catchError, lastValueFrom, Observable, of, tap } from 'rxjs';
-import { FileUtils } from '../utils/FileUtils';
-import GedApiService from '../gedApiService';
+import { FileUtils } from '../../utils/FileUtils';
+import GedApiService from '../../ged.api.service';
 
 @Injectable({
   providedIn: 'root',

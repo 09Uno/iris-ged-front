@@ -1,0 +1,39 @@
+<div class="full-width-container">
+  
+
+
+    <app-tool-bar 
+      [isProfessional]="isProfessional"
+      [isCorporative]="isCorporative"
+      [isHome]="true"
+    ></app-tool-bar>
+  <div class="content">
+      <div *ngIf="!isAuthenticated" class="card col-md-4 mt-3 ml-3 mr-3">
+          <h5 class="card-header">
+              Você não está logado.
+          </h5>
+          <div class="card-body">
+              <div class="card-text">
+                  Use o botão na parte superior direita para logar.
+                  Ao tentar acessar você será redirecionado automaticamente para a plataforma de login único do Gov BR.
+              </div>
+          </div>
+      </div>
+
+      <div *ngIf="isAuthenticated" class="card col-md-4 mt-3 ml-3 mr-3" style="max-width: 400px;">
+          <img [src]="home"  alt="Processos" class="card-img-top" style="max-height: 200px; object-fit: cover;">
+          <div class="card-body">
+              <h3>IRIS GESTÃO ELETRÔNICA DE DOCUMENTOS</h3>
+              <p>Assine ARTs e Atestados das CATs através do GOVBR.</p>
+              <a href="/documentos">
+                  <i class="bi bi-arrow-right"></i>
+                  Visite
+              </a>
+          </div>
+      </div>
+  </div>
+
+  <footer>
+      © 2024 Coordenação de Tecnologia - Conselho Regional de Engenharia e Agronomia da Bahia. <br>Todos os direitos reservados.
+  </footer>
+</div>

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { catchError, Observable, throwError, lastValueFrom } from 'rxjs';
 import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit } from './models/document/documentItemModel';
-import { AuthService } from './services/authservices';
+import { AuthService } from './services/authentication/auth.service';
 
 export const apiUrl = 'https://localhost:5001/';
 
@@ -80,7 +80,7 @@ export default class GedApiService {
         responseType: 'blob' as 'json'
       });
   
-      return response ; // Retorna o Blob
+      return response as Observable<Blob>; // Retorna o Blob
     } catch (error) {
       console.error('Erro ao baixar o documento:', error);
       throw error; // Lança o erro para ser tratado externamente
@@ -127,4 +127,58 @@ export default class GedApiService {
       });
     });
   }
+
+
+
+  checkAuthentication(): any {
+    try {
+      const token = this.authService.getGovBrToken();
+  
+      if (!token) {
+        console.error('Token inválido ou ausente.');
+        throw new Error('Token inválido ou ausente.');
+      }
+  
+  
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  
+      // Certifique-se de que o URL da API está correto
+      return this.http.get(`${apiUrl}api/Auth/ValidateToken`, { headers }).subscribe({
+        next: (response: any) => {
+          console.log('Response:', response);
+          return response;
+        },
+        error: (error: any) => {
+          console.error('Erro na requisição:', error);
+          throw error;
+        }});
+    } catch (error) {
+      console.error('Erro ao tentar autorizar:', error);
+      throw error;
+    }
+  }
+
+  logoutGovBr(){
+    try {
+      const token = this.authService.getGovBrToken();
+     
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  
+      // Certifique-se de que o URL da API está correto
+      return this.http.get(`${apiUrl}api/Auth/LogOutGovBr?token=${token}`, { headers }).subscribe({
+        next: (response: any) => {
+          console.log('Response:', response);
+          return response;
+        },
+        error: (error: any) => {
+          console.error('Erro na requisição:', error);
+          throw error;
+        }});
+    } catch (error) {
+      console.error('Erro ao tentar fazer logout:', error);
+      throw error;
+    }
+  }
+  
+
 }

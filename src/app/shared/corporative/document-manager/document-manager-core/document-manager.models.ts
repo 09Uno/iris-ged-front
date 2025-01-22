@@ -1,5 +1,5 @@
 import { SafeResourceUrl } from '@angular/platform-browser';
-import { DocumentFetchDTO } from '../../../models/document/documentItemModel';
+import { DocumentFetchDTO } from '../../../../models/document/documentItemModel';
 
 
 

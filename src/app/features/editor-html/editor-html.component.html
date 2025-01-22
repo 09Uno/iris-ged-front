@@ -1,29 +1,61 @@
 <div class="modal-container">
   <div class="modal-header">
     <span></span>
-    <button class="close-button" (click)="closeDocument()">
-      <span class="material-icons">close</span>
-    </button>
+    <div class="button-container">
+      <button class="close-button" (click)="closeDocument()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
   </div>
   <div class="modal-content">
     <div style="display: flex; flex-direction: column; gap: 5px;">
       <!-- Quill Editor -->
-     
-      <div class="acoes-container editor-container" >
-        <button class="btn  acoes" title="Salvar Documento" (click)="updateDocumentHtml()">
-          <span class="material-icons">save</span>
+      <div class="editor-container">
+        <button class="btn acoes" title="Salvar Documento" (click)="updateDocumentHtml()">
+          <span class="material-icons ">save</span>
           Salvar
         </button>
-        <!-- <button class="btn btn-danger acoes" title="Cancelar" >
-          <span class="material-icons">cancel</span>
-        </button> -->
+        <button class="btn acoes mine" title="Desfazer" (click)="undo()">
+          <span class="material-icons mine">undo</span>
+        </button>
+        <button class="btn acoes mine" title="Refazer" (click)="redo()">
+          <span class="material-icons mine">redo</span>
+        </button>
+        <div class="find">
+          <input type="text " class="input-search" placeholder="Buscar" [(ngModel)]="searchTerm">
+        </div>
+        <button class="btn acoes mine" title="Buscar" (click)="search()">
+          <span class="material-icons mine">search</span>
+        </button>
+        <button *ngIf="searchResults.length != 0" class="btn acoes mine" title="Próximo" (click)="nextSearch()">
+          <span *ngIf="searchResults.length != 0" class="material-icons mine">arrow_upward</span>
+        </button>
+        <button *ngIf="searchResults.length != 0" class="btn acoes mine" title="Anterior" (click)="prevSearch()">
+          <span *ngIf="searchResults.length != 0" class="material-icons mine">arrow_downward</span>
+        </button>
+
+        <span *ngIf="searchResults.length > 0" class="search-count">
+          {{ currentSearchIndex + 1 }} / {{ searchResults.length }}
+        </span>
+        <!-- <div class="replace" *ngIf="searchResults.length > 0">
+          <input type="text" class="input-replace" placeholder="Substituir" [(ngModel)]="replaceTerm">
+          <button class="btn acoes mine" title="Substituir" (click)="replace()">
+            <span class="material-icons mine">swap_horiz</span>
+          </button>
+          <button class="btn acoes mine" title="Substituir Tudo" (click)="replaceAll()">
+            <span class="material-icons mine">done_all</span>
+          </button>
+        </div> -->
+
+        <quill-editor #quillEditor (onEditorCreated)="onEditorCreated($event)" class="quill-container"
+          [ngModelOptions]="{ standalone: true }" [(ngModel)]="content" style="height: 700px; width: 100%;" [modules]="quillModules">
+        </quill-editor>
       </div>
-      <quill-editor 
-        [ngModelOptions]="{ standalone: true }" 
-        [(ngModel)]="content" 
-        style="height: 700px;"
-        [modules]="quillModules">
-      </quill-editor>
     </div>
   </div>
-</div>
+
+  <div id="loading-overlay" *ngIf="uiControllers.isLoading">
+    <div class="progress-bar-loading" *ngIf="uiControllers.isLoading">
+      <div class="progress-bar-loading-value"></div>
+    </div>
+  </div>

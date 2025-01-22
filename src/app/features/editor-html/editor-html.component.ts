@@ -1,15 +1,21 @@
+/* The `EditorHtmlComponent` class in TypeScript is a component used for editing HTML content with
+features like search, replace, undo, redo, and updating the document through a service. */
+/* The `import { Component, AfterViewInit, ViewChild, ElementRef, EventEmitter, Output, Inject } from
+'@angular/core';` statement in TypeScript is importing various decorators and classes from the
+`@angular/core` module. Here is a brief explanation of each import: */
 import { Component, AfterViewInit, ViewChild, ElementRef, EventEmitter, Output, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { QuillModule } from 'ngx-quill';
+import { QuillEditorComponent, QuillModule } from 'ngx-quill';
 import 'quill/dist/quill.snow.css';
-import { DocumentService } from '../../services/documentService';
+import { DocumentService } from '../../services/documents/document.service';
 import { htmlItemDocumentToEdit } from '../../models/document/documentItemModel.config';
 import { HtmlItemDocumentToEdit } from '../../models/document/documentItemModel';
 import { mapToHtmlItemDocumentToEdit } from './editor.config';
 import { lastValueFrom } from 'rxjs';
 import Quill from 'quill';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { defaultUiControllers } from '../../shared/corporative/document-manager/document-manager-core/document-manager.config';
 
 @Component({
   selector: 'app-editor-html',
@@ -24,8 +30,12 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 })
 export class EditorHtmlComponent implements AfterViewInit {
   @ViewChild('iframe') iframe!: ElementRef;
+  @ViewChild('quillEditor') quillEditorComponent!: QuillEditorComponent;
+
   @Output() startDocumentCallback = new EventEmitter<{ docID: number; extension: string; name: string }>();
   documentItem: HtmlItemDocumentToEdit = { ...htmlItemDocumentToEdit };
+  uiControllers = { ...defaultUiControllers }
+  searchTerm: string = '';
 
   allowHtmlPaste = true;
   quillModules = {
@@ -51,7 +61,9 @@ export class EditorHtmlComponent implements AfterViewInit {
   content: string;
   processIdentifier: string;
   documentId: number;
-  
+  searchResults: number[] = [];
+  replaceTerm: string = '';
+  currentSearchIndex: number = -1;
   private quillEditor: Quill | null = null;
 
   constructor(
@@ -99,6 +111,7 @@ export class EditorHtmlComponent implements AfterViewInit {
   }
 
   onEditorCreated(editor: any) {
+    this.quillEditor = editor;
     editor.clipboard.addMatcher(Node.TEXT_NODE, (node: any) => {
       if (!this.allowHtmlPaste) {
         return document.createTextNode(node.textContent);
@@ -108,17 +121,80 @@ export class EditorHtmlComponent implements AfterViewInit {
   }
 
   undo() {
-    if (this.quillEditor) {
-      this.quillEditor.history.undo();
+    const editor = this.quillEditor;
+    if (editor) {
+      editor.history.undo();
+    } else {
+      console.error('Editor not found');
     }
   }
 
   redo() {
-    if (this.quillEditor) {
-      this.quillEditor.history.redo();
+    const editor = this.quillEditor;
+    if (editor) {
+      editor.history.redo();
+    } else {
+      console.error('Editor not found ');
+    }
+
+  }
+
+  search() {
+    const editor = this.quillEditor;
+    if (editor) {
+      const text = editor.getText();
+      this.searchResults = [];
+      let index = text.indexOf(this.searchTerm);
+      while (index !== -1) {
+        this.searchResults.push(index);
+        index = text.indexOf(this.searchTerm, index + this.searchTerm.length);
+      }
+      if (this.searchResults.length > 0) {
+        this.currentSearchIndex = 0;
+        editor.setSelection(this.searchResults[this.currentSearchIndex], this.searchTerm.length);
+      } else {
+        editor.setSelection(this.searchResults[0], 0);
+      }
+    } else {
+      console.error('Editor not found');
+    }
+  }
+  nextSearch() {
+    const editor = this.quillEditor;
+    if (editor && this.searchResults.length > 0) {
+      this.currentSearchIndex = (this.currentSearchIndex + 1) % this.searchResults.length;
+      editor.setSelection(this.searchResults[this.currentSearchIndex], this.searchTerm.length);
     }
   }
 
+  prevSearch() {
+    const editor = this.quillEditor;
+    if (editor && this.searchResults.length > 0) {
+      this.currentSearchIndex = (this.currentSearchIndex - 1 + this.searchResults.length) % this.searchResults.length;
+      editor.setSelection(this.searchResults[this.currentSearchIndex], this.searchTerm.length);
+    }
+  }
+
+  replace() {
+    const editor = this.quillEditor;
+    if (editor && this.searchResults.length > 0 && this.replaceTerm) {
+      const currentIndex = this.searchResults[this.currentSearchIndex];
+      editor.deleteText(currentIndex, this.searchTerm.length);
+      editor.insertText(currentIndex, this.replaceTerm);
+      this.search();
+    }
+  }
+
+  replaceAll() {
+    const editor = this.quillEditor;
+    if (editor && this.searchResults.length > 0 && this.replaceTerm) {
+      for (let i = this.searchResults.length - 1; i >= 0; i--) {
+        editor.deleteText(this.searchResults[i], this.searchTerm.length);
+        editor.insertText(this.searchResults[i], this.replaceTerm);
+      }
+      this.search();
+    }
+  }
 
   execCmd(command: string, value: string | null = null) {
     const iframeDocument = this.iframe.nativeElement.contentDocument || this.iframe.nativeElement.contentWindow.document;
@@ -128,10 +204,13 @@ export class EditorHtmlComponent implements AfterViewInit {
   }
 
   async updateDocumentHtml() {
+
+    this.uiControllers.isLoading = true;
     const item = mapToHtmlItemDocumentToEdit(this.processIdentifier, this.documentId, this.content);
 
     if (!item) {
       console.error('Failed to map document item');
+      this.uiControllers.isLoading = false;
       return;
     }
 
@@ -142,7 +221,9 @@ export class EditorHtmlComponent implements AfterViewInit {
         extension: result.updatedDocument.extension,
         name: result.updatedDocument.name,
       });
+      this.uiControllers.isLoading = false;
     } catch (error) {
+      this.uiControllers.isLoading = false;
       console.error('Error updating document:', error);
     }
   }

@@ -1,7 +1,13 @@
 .mat-toolbar-row {
   height: 10px !important;
 }
-
+.home-text {
+  display: flex;
+  // flex-direction: column;  /* Empilha os elementos verticalmente */
+  // align-items: center;     /* Alinha os itens ao centro horizontalmente */
+  // justify-content: center; /* Alinha os itens ao centro verticalmente */
+  // text-align: center;      /* Alinha o texto de cada elemento ao centro */
+}
 .button-opt {
   background-color: #00336600;
   color: #094c8c;
@@ -31,6 +37,27 @@
   height: auto;
   width: auto;
 }
+
+
+
+.gov-br-login {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #004aad;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.gov-br-logo {
+  width: 20px;
+  height: 20px;
+}
+
 
 .menu-container {
   // display: flex;

@@ -4,5 +4,10 @@
         "Msal",
         "pdfmake"
     ],
-    "FSharp.suggestGitignore": false
+    "FSharp.suggestGitignore": false,
+    "docwriter.style": "Auto-detect",
+    "docwriter.progress.trackTypes": false,
+    "docwriter.progress.trackClasses": true,
+    "docwriter.progress.trackMethods": true,
+    "docwriter.progress.trackFunctions": false
 }

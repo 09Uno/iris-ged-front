@@ -109,7 +109,7 @@ export class FileUtils {
         const documentDefinition: TDocumentDefinitions = {
           content: converted,
           defaultStyle: {
-            font: 'Arial', 
+            font: 'Arial',
           },
         };
 
@@ -135,35 +135,54 @@ export class FileUtils {
     newHeader.style.marginBottom = '30px';
     newHeader.style.padding = '20px 0';
     newHeader.style.borderBottom = '2px solid #000';
-  
+
     const img = document.createElement('img');
     img.src = 'http://localhost:4200/assets/brasil.png';
     img.alt = 'Brasão do Brasil';
     img.style.width = '150px';
     img.style.height = 'auto';
     img.style.marginBottom = '20px';
-  
+
     const h3 = document.createElement('h3');
     h3.style.fontSize = '16px';
     h3.style.margin = '0';
     h3.textContent = 'SERVIÇO PÚBLICO FEDERAL';
-  
+
     const h2_1 = document.createElement('h2');
     h2_1.style.fontSize = '18px';
     h2_1.style.margin = '10px 0';
     h2_1.textContent = 'CONSELHO REGIONAL DE ENGENHARIA E AGRONOMIA DA BAHIA - CREA-BA';
-  
+
     const h2_2 = document.createElement('h2');
     h2_2.style.fontSize = '16px';
     h2_2.style.margin = '5px 0';
     h2_2.textContent = 'TERMO DE REFERÊNCIA';
-  
+
     newHeader.appendChild(img);
     newHeader.appendChild(h3);
     newHeader.appendChild(h2_1);
     newHeader.appendChild(h2_2);
-  
+
     return newHeader;
   }
+
+
+  // Método auxiliar para adicionar o <header> ao HTML
+  static addHeaderToHtml(html: string): string {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    const existingHeader = doc.querySelector('header');
+    if (existingHeader) {
+      existingHeader.replaceWith(FileUtils.createNewHeader());
+    } else {
+      const body = doc.querySelector('body');
+      if (body) {
+        body.insertBefore(FileUtils.createNewHeader(), body.firstChild);
+      }
+    }
+    return doc.documentElement.outerHTML;
+  }
+
 
 }

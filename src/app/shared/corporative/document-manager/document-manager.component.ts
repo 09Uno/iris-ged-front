@@ -1,18 +1,12 @@
-import { FileUtils } from './../../utils/FileUtils';
 import { Component, OnInit } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { catchError, of, tap } from 'rxjs';
-import { JsTreeUtil } from '../../utils/jsTreeUtils';
-import { MessageUtil } from '../../utils/message';
-import { DocumentService } from '../../services/documentService';
+
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
-import { EditorHtmlComponent } from '../../features/editor-html/editor-html.component';
-import { InsertDocumentComponent } from '../../features/Insert-document/insert-document.component';
-import { ToolBarComponent } from '../../features/tool-bar.component/tool-bar.component';
-import { FormatUtils } from '../../utils/Formater';
+
 import { defaultViewController, defaultManagerAttributes, defaultHtmlClassAndId, defaultMessages, defaultUiControllers, defaultVisibleButtons } from './document-manager-core/document-manager.config';
 import { Title } from '@angular/platform-browser';
 import { saveAs } from 'file-saver';
@@ -28,6 +22,14 @@ import htmlToPdfmake from 'html-to-pdfmake';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { Overlay } from '@angular/cdk/overlay';
+import { EditorHtmlComponent } from '../../../features/editor-html/editor-html.component';
+import { InsertDocumentComponent } from '../../../features/Insert-document/insert-document.component';
+import { ToolBarComponent } from '../../../features/tool-bar.component/tool-bar.component';
+import { DocumentService } from '../../../services/documents/document.service';
+import { FileUtils } from '../../../utils/FileUtils';
+import { FormatUtils } from '../../../utils/Formater';
+import { JsTreeUtil } from '../../../utils/jsTreeUtils';
+import { MessageUtil } from '../../../utils/message';
 
 @Component({
   selector: 'app-file-manager',
@@ -56,6 +58,8 @@ export class DocumentManagerComponent implements OnInit {
   htmlClassAndId = { ...defaultHtmlClassAndId };
   sidenavOpened = false;
   overlayRef: any;
+  isProfessional: boolean = false;
+  isCorporative: boolean = true;
 
   private dialogRef: MatDialogRef<EditorHtmlComponent> | null = null;
 
@@ -69,10 +73,11 @@ export class DocumentManagerComponent implements OnInit {
     (window as any).pdfMake.vfs = pdfFonts.vfs;
   }
   ngOnInit() {
+    localStorage.setItem('redirectUrl', '/documents');
     this.titleService.setTitle('Gerenciar Documentos');
     this.htmlClassAndId.cardJsTreeClass = 'card card-bkg-filed';
     this.htmlClassAndId.cardClass = 'card card-bkg-filed';
-
+    
   }
 
   // Inicializa a árvore de documentos (JsTree)
@@ -206,7 +211,7 @@ export class DocumentManagerComponent implements OnInit {
       .pipe(
         tap(async (result) => {
           const mimeType = FileUtils.getMimeType(extension);
-          const blob = new Blob([result], { type: mimeType });
+          const blob = new Blob([result as BlobPart], { type: mimeType });
           this.managerAttributes.documentBlob = blob;
 
           if (extension === '.html') {
@@ -285,7 +290,7 @@ export class DocumentManagerComponent implements OnInit {
           if (htmlContent) {
             // Adicionar o <header> dinamicamente ao HTML
             const sanitizedHtml = FileUtils.sanitizeHtmlContent(htmlContent);
-            const updatedHtmlWithHeader = this.addHeaderToHtml(sanitizedHtml);
+            const updatedHtmlWithHeader = FileUtils.addHeaderToHtml(sanitizedHtml);
 
             // Converte as imagens no HTML para base64, se necessário
             const updatedHtml = await FileUtils.convertImagesInHtmlToBase64(
@@ -317,23 +322,8 @@ export class DocumentManagerComponent implements OnInit {
     }
   }
 
-  // Método auxiliar para adicionar o <header> ao HTML
-  addHeaderToHtml(html: string): string {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
 
-    const existingHeader = doc.querySelector('header');
-    if (existingHeader) {
-      existingHeader.replaceWith(FileUtils.createNewHeader());
-    } else {
-      const body = doc.querySelector('body');
-      if (body) {
-        body.insertBefore(FileUtils.createNewHeader(), body.firstChild);
-      }
-    }
 
-    return doc.documentElement.outerHTML;
-  }
   // Edita um documento HTML
   editHtmlDocument() {
     this.viewController.subtitle = 'Editar Documento.';
@@ -350,7 +340,7 @@ export class DocumentManagerComponent implements OnInit {
       return;
     }
 
-    this.documentService.getHtmlContent(this.managerAttributes.documentBlob).then((content) => {
+    this.documentService.getHtmlContent(this.managerAttributes.documentBlob).then((content: any) => {
       if (content) {
         this.managerAttributes.selectedDocumentString = content;
 
@@ -366,7 +356,7 @@ export class DocumentManagerComponent implements OnInit {
         this.uiControllers.isLoading = false;
         console.error('Failed to load document content.');
       }
-    }).catch((error) => {
+    }).catch((error: any) => {
       this.uiControllers.isLoading = false;
       console.error('Error while fetching document content:', error);
     });
@@ -377,6 +367,7 @@ export class DocumentManagerComponent implements OnInit {
     if (this.dialogRef) {
       this.dialogRef.close();
       this.dialogRef = null;
+      
     }
 
     this.dialogRef = this.dialog.open(EditorHtmlComponent, {
@@ -398,18 +389,13 @@ export class DocumentManagerComponent implements OnInit {
     });
   }
 
-
-  closeModal() {
+  closeEditor() {
     if (this.dialogRef) {
       this.dialogRef.close();
       this.dialogRef = null;
     }
   }
 
-  searchDocumentsFromParent(callback: (result: any) => void) {
-    this.managerAttributes.source = 'parent';
-    this.searchDocuments(callback);
-  }
   // Inicia o processo de seleção e edição de documento
   startDocument(event: { docID: number; extension: string; name: string }) {
     this.searchDocuments((result) => {
@@ -419,6 +405,14 @@ export class DocumentManagerComponent implements OnInit {
       this.managerAttributes.source = 'children'
     });
   }
+
+  searchDocumentsFromParent(callback: (result: any) => void) {
+    this.managerAttributes.source = 'parent';
+    this.searchDocuments(callback);
+  }
+
+  
+
 
   // Função de callback para manipulação de resultados ou erros
   callback(result: any, error?: any) {

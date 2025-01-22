@@ -1,16 +1,31 @@
 import { Routes } from '@angular/router';
-import { DocumentManagerComponent } from './shared/document-manager/document-manager.component';
-import { InserirArquivosComponent } from './shared/inserir-arquivos/inserir-arquivos.component';
+import { InserirArquivosComponent } from './shared/corporative/inserir-arquivos/inserir-arquivos.component';
 import { MsalGuard } from '@azure/msal-angular';
-import { HomeComponent } from './shared/home/home.component';
+import { HomeComponent } from './shared/corporative/home/home.component';
 import path from 'path';
 import { Component } from '@angular/core';
 import { EditorHtmlComponent } from './features/editor-html/editor-html.component';
+import { DocumentManagerComponent } from './shared/corporative/document-manager/document-manager.component';
+import { ProfessionalHomeComponent } from './shared/professional/professional-home/professional-home.component';
+import { AuthGuard } from './services/authentication/auth.guard';
+import { SessionGuard } from './services/authentication/session.guard';
+import { CatComponent } from './shared/professional/cat/cat.component';
 
 export const routes: Routes = [
+    
+    //Rotas ambiente corporativo
+    //Session Guard verifica se a sessão está ativa pelo azure ou pelo gov.br
     { path: 'inserir-arquivos', component: InserirArquivosComponent, canActivate: [MsalGuard] },
     { path: 'documentos', component: DocumentManagerComponent, canActivate: [MsalGuard]  },
-    { path: '', component: HomeComponent },
-    { path: 'edit-document', component: EditorHtmlComponent }
+    { path: 'home-corporative', component: HomeComponent },
+    { path: 'edit-document', component: EditorHtmlComponent },
+
+    //Rotas ambiente profissional
+  
+    {path: 'home-professional', component: ProfessionalHomeComponent},
+    {path: 'cat', component: CatComponent, canActivate: [AuthGuard] }
+
+
+
 
 ];

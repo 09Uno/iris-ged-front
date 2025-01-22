@@ -1,19 +1,71 @@
+.progress-bar-loading {
+  height: 20px;
+  background-color: rgba(5, 114, 206, 0.2);
+  width: 200px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+  display: flex; 
+  justify-content: center; 
+  border-radius: 5px; 
+}
+
+.progress-bar-loading-value {
+  width: 100%;
+  height: 100%;
+  background-color: #00509b;
+  animation: indeterminateAnimation 1s infinite linear;
+  transform-origin: 0% 50%;
+}
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.692);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@keyframes indeterminateAnimation {
+  0% {
+    transform: translateX(0) scaleX(0);
+  }
+  40% {
+    transform: translateX(0) scaleX(0.4);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.5);
+  }
+}
 #toolbar {
-    padding: 10px;
-    background-color: #f0f0f0;
-    border-bottom: 1px solid #ccc;
-    margin-bottom: 10px;
-  }
-  
-  #toolbar button {
-    margin-right: 5px;
-  }
-  
-  .acoes-container{
-    display: flex;
-    justify-content: start;
-  }
- /* Ajuste para o botão pequeno */
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+#toolbar button {
+  margin-right: 5px;
+}
+
+.acoes-container {
+  display: flex;
+  justify-content: start;
+  background-color: rgb(255, 255, 255);
+  height: auto;
+  border: solid 0.8px rgb(204, 204, 204);
+}
+
+.editor-container {
+  background-color: rgb(243, 237, 237);
+  padding: 5px;
+  border-radius: 2px;
+}
 .acoes {
   padding: 5px 10px;
   margin: 2px;
@@ -24,15 +76,34 @@
   align-self: space-between;
   border-radius: 5px;
   height: 25px; /* Tamanho do botão */
-  width: 70px;  /* Tamanho do botão */
+  width: 70px; /* Tamanho do botão */
   background-color: #c5c3c3;
+  color: white;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Adiciona transição suave */
+}
+.mine {
+  width: 15px !important;
+  font-size: 15px !important;
+  justify-content: center !important;
+}
+
+.find {
+  height: 30px !important;
+  font-size: 15px !important;
+  justify-content: center !important;
+  display: inline-flex;
+  padding: 3px;
+  margin-left: 5px;
+}
+
+.acoes:hover {
+  background-color: #094c8c;
   color: white;
 }
 
 .acoes span.material-icons {
-  font-size: 20px; /* Tamanho do ícone */
+  font-size: 20px; 
 }
-
 
 .modal-container {
   display: flex;
@@ -40,9 +111,8 @@
   height: 100%;
   width: 100%;
   border: 1px solid #ccc;
-  border-radius: 2px;
   overflow: hidden;
-  resize: both; /* Permite redimensionar */
+  border-radius: none !important;
 }
 
 .modal-header {
@@ -50,26 +120,54 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem;
-  background-color: #bdcbf1;
+  background-color: #094c8c;
   border-bottom: 1px solid #ccc;
   cursor: move; /* Permite mover */
+  color: white;
 }
-
+.quill-container {
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
 .modal-content {
   flex: 1;
-  padding: 1rem;
   overflow: auto;
+  padding: 10px;
 }
-
+.button-container {
+  background-color: rgb(216, 37, 37);
+  border: solid 1px black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 3px;
+  height: 30px;
+  width: 30px;
+}
 .close-button {
   background: none;
   border: none;
   cursor: pointer;
   justify-self: center;
+  color: white;
 }
 
 .iframe {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+
+.replace {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.search-count {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #333;
 }

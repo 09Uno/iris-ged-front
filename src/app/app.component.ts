@@ -32,9 +32,11 @@ export class AppComponent implements OnInit {
           console.log('Autenticado com sucesso', result);
           const name = result.account.name!
           localStorage.setItem('name', name )
+          console.log('Nome:', name)
+          console.log('link:', this.router.url)
           // Recupera a URL de redirecionamento armazenada no localStorage
-          const redirectUrl = localStorage.getItem('redirectUrl') || '/documentos'; // Se não houver, vai para /documentos
-  
+          const redirectUrl = localStorage.getItem('redirectUrl') || '/'; 
+          
           // Remove a URL de redirecionamento após o uso
           localStorage.removeItem('redirectUrl');
   

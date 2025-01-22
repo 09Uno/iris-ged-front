@@ -32,6 +32,9 @@ export class JsTreeUtil {
 
     // Set up the document selection event
     $(`#${elementId}`).on('select_node.jstree', (event: any, data: any) => {
+      if (data.node.id === 'root_process') {
+        return;
+      }
       const selectedDocumentId = parseInt(data.node.id, 10);
       const extension = data.node.a_attr.extension;
       const name = data.node.a_attr.name;
@@ -46,7 +49,7 @@ export class JsTreeUtil {
     return [
       {
         id: "root_process",
-        text: `Process ${processIdentifier}`,
+        text: `Processo ${processIdentifier}`,
         state: { opened: true },
         children: documents.map(doc => ({
           id: doc.id.toString(),
