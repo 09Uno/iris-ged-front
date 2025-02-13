@@ -6,9 +6,9 @@
 <br>
 <br>
 <br>
+<br>
 
 
-<!-- Espaçamento entre o cabeçalho e o conteúdo -->
 <div class="card-header">
     <p></p>
     <h4 class="title">Gravações</h4>
@@ -18,107 +18,83 @@
             Ver Como
         </button>
         <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="viewSelector">
-            <li>
-                <a class="dropdown-item switch-view" href="#">Card</a>
-            </li>
-            <li>
-                <a class="dropdown-item switch-view" href="#">Tabela</a>
-            </li>
+            <li><a class="dropdown-item switch-view" href="#">Card</a></li>
+            <li><a class="dropdown-item switch-view" href="#">Tabela</a></li>
         </ul>
     </div>
+
 </div>
+<div class="search-input">
+    <input type="text" class="form-control" placeholder="Pesquisar vídeos..." />
+</div>
+<div class="main-container">
+    <!-- Filtros e barra de pesquisa -->
+    <aside class="filters-container">
+       
 
-<div class="videos-container">
-    <div class="find-itens">
-        <!-- Barra de pesquisa -->
-        <div class="search-input">
-            <input 
-                type="text" 
-                class="form-control" 
-                placeholder="Pesquisar vídeos..." 
-            />
-        </div>
-    
-        <!-- Filtros -->
         <div class="filters">
-            <!-- Filtro de data -->
-            <div class="filter-item mb-3">
-                <label for="dateFilter" class="form-label">Início</label>
-                <input 
-                    type="date" 
-                    class="form-control" 
-                    id="dateFilter" 
-                    placeholder="Data Inicial"
-                />
+            <!-- Filtro por Período -->
+            <div class="filter-item">
+                <label for="dateRangePicker" class="form-label">Filtrar por Período</label>
+                <mat-form-field appearance="outline" class="custom-date-range">
+                    <mat-label>Selecione um período</mat-label>
+                    <mat-date-range-input [rangePicker]="picker">
+                        <input matStartDate placeholder="Data inicial">
+                        <input matEndDate placeholder="Data final">
+                    </mat-date-range-input>
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-date-range-picker #picker></mat-date-range-picker>
+                </mat-form-field>
             </div>
-            <div class="filter-item mb-3">
-                <label for="dateFilter" class="form-label">Fim</label>
 
-                <input 
-                    type="date" 
-                    class="form-control" 
-                    id="dateFilter" 
-                    placeholder="Data Inicial"
-                />
-            </div>
-    
-            <!-- Filtro de câmaras -->
-            <div class="filter-item mb-3">
+            <!-- Filtro por Categoria -->
+            <div class="filter-item">
                 <label for="camerasDropdown" class="form-label">Categoria de Arquivo/Documento:</label>
                 <div class="dropdown">
-                    <button 
-                        class="btn btn-secondary dropdown-toggle" 
-                        type="button" 
-                        id="camerasDropdown" 
-                        data-bs-toggle="dropdown" 
-                        aria-expanded="false">
+                    <button class="btn btn-secondary dropdown-toggle filter-button"  type="button" id="camerasDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false">
                         Selecione Câmaras
                     </button>
                     <div class="dropdown-menu" aria-labelledby="camerasDropdown">
-                        <div 
-                            class="dropdown-item" 
-                            *ngFor="let camera of cameras">
-                            <input 
-                                type="checkbox" 
-                                [id]="'camera' + camera.id" 
-                                [(ngModel)]="selectedCameras[camera.id]" 
-                            />
+                        <div class="dropdown-item" *ngFor="let camera of cameras">
+                            <input type="checkbox" [id]="'camera' + camera.id"
+                                [(ngModel)]="selectedCameras[camera.id]" />
                             <label [for]="'camera' + camera.id">{{ camera.nome }}</label>
                         </div>
                     </div>
                 </div>
             </div>
-            <br>
-
-
         </div>
-        
-    </div>
-    
-    
-    <!-- Exibição no modo Grade -->
-    <div *ngIf="viewMode === 'grid'" class="videos-grid">
-        <div class="video-card" *ngFor="let video of videos">
-            <video width="300" controls>
-                <source [src]="video.url" type="video/mp4" />
-            </video>
-            <h3>{{ video.nome }}</h3>
-            <p>{{ video.descricao }}</p>
-            <button class="ver-detalhes-button btn btn-info">Ver Detalhes</button>
-        </div>
-    </div>
+    </aside>
 
-    <!-- Exibição no modo Lista -->
-    <div *ngIf="viewMode === 'list'" class="videos-list">
-        <div class="video-item" *ngFor="let video of videos">
-            <video width="300" controls>
-                <source [src]="video.url" type="video/mp4" />
-            </video>
-            <div>
+    <!-- Conteúdo Principal -->
+    <section class="content-container">
+
+
+        <!-- Exibição no modo Grade -->
+        <div *ngIf="viewMode === 'grid'" class="videos-grid">
+            <div class="video-card" *ngFor="let video of videos">
+                <video width="265" height="150" controls>
+                    <source [src]="video.url" type="video/mp4" />
+                </video>
                 <h3>{{ video.nome }}</h3>
                 <p>{{ video.descricao }}</p>
                 <button class="ver-detalhes-button btn btn-info">Ver Detalhes</button>
             </div>
         </div>
-    </div>
+
+        <!-- Exibição no modo Lista -->
+        <div *ngIf="viewMode === 'list'" class="videos-list">
+            <div class="video-item" *ngFor="let video of videos">
+                <video width="300" controls>
+                    <source [src]="video.url" type="video/mp4" />
+                </video>
+                <div>
+                    <h3>{{ video.nome }}</h3>
+                    <p>{{ video.descricao }}</p>
+                    <button class="ver-detalhes-button btn btn-info">Ver Detalhes</button>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>

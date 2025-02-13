@@ -7,19 +7,18 @@
 <div class="container mt-4">
   <div class="card">
     <div class="card-header bg-light">
-      <h5>Registrar Arquivos</h5>
+      <h5>Registrar Gravações</h5>
     </div>
     <div class="card-body">
       <form>
         <div class="row">
           <!-- Tipo de Documento -->
           <div class="col-md-12 mb-3">
-            <label for="tipoArquivo" class="form-label">Tipo de Arquivo:</label>
+            <label for="tipoArquivo" class="form-label">Origem da Gravação</label>
             <select id="tipoArquivo" class="form-select">
-              <option value="0" disabled selected>Selecione a extensão do documento...</option> 
-              <option value="mp4">MP4</option>
-              <option value="pdf">PDF</option>
-              <option value="docx">DOCX</option>
+              <option value="0" disabled selected>Selecione a origem da gravação..</option> 
+              <option value="mp4">Plenária</option>
+              <option value="pdf">Câmara de Civil</option>
             </select>
           </div>
           
@@ -35,7 +34,7 @@
         <div class="row">
           <!-- Data Limite -->
           <div class="col-md-12 mb-3">
-            <label for="dataLimite" class="form-label">Data:</label>
+            <label for="dataLimite" class="form-label">Data do Evento:</label>
             <div class="input-group">
               <input type="date" id="dataLimite" class="form-control">
             
@@ -51,7 +50,7 @@
 
         <div class="mb-3">
           <label for="arquivos" class="form-label">Arquivos:</label>
-          <input type="file" id="arquivos" class="form-control" multiple="multiple" placeholder="Selecione os Arquivos">
+          <input type="file" id="arquivos" class="form-control" multiple="multiple" placeholder="Selecione os Arquivos" accept=".mp3, .mp4">
         </div>
 
         <!-- Botões -->

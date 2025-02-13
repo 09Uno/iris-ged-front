@@ -326,7 +326,7 @@ export class DocumentManagerComponent implements OnInit {
 
   // Edita um documento HTML
   editHtmlDocument() {
-    this.viewController.subtitle = 'Editar Documento.';
+    this.viewController.subtitle = 'Ver Documento.';
     // this.managerAttributes.selectedDocument = null;
     this.uiControllers.isLoading = true;
     this.uiControllers.showEditor = true;
