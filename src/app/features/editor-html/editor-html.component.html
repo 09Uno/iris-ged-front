@@ -1,7 +1,10 @@
-<div class="modal-container">
+<div class="modal-container" [class.fullscreen-editor]="isFullscreen">
   <div class="modal-header">
     <span></span>
     <div class="button-container">
+      <button class="fullscreen-button" title="Tela cheia" (click)="toggleFullscreen()">
+        <span class="material-icons">{{isFullscreen ? 'fullscreen_exit' : 'fullscreen'}}</span>
+      </button>
       <button class="close-button" (click)="closeDocument()">
         <span class="material-icons">close</span>
       </button>

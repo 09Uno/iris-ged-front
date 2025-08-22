@@ -1,0 +1,259 @@
+<!-- insert-document.component.html -->
+<app-tool-bar 
+  *ngIf="modal === 0"
+  [title]="title" 
+  [isProfessional]="isProfessional" 
+  [isCorporative]="isCorporative">
+</app-tool-bar>
+
+<div class="container-fluid main" [class.modal-mode]="modal === 1">
+  <!-- Layout Principal: Formulário Alargado -->
+  <div class="row main-content">
+    <div class="col-12 form-column">
+      <div class="card form-card">
+        <div class="card-header" *ngIf="modal === 0">
+          <h5 class="card-title mb-0">Inserir Documentos</h5>
+        </div>
+        <div class="card-body form-body">
+          <!-- Message area -->
+          <div *ngIf="submitMessage" class="alert message-sm" 
+               [ngClass]="submitSuccess ? 'alert-success' : 'alert-danger'" 
+               role="alert">
+            <span class="material-icons me-1" style="font-size: 16px;">
+              {{ submitSuccess ? 'check_circle' : 'error' }}
+            </span>
+            {{ submitMessage }}
+          </div>
+
+          <form (ngSubmit)="onSubmit()" #documentForm="ngForm">
+            <!-- Protocol information panel (shown when protocol is provided) -->
+            <div *ngIf="existingProtocol" class="info-panel-expanded">
+              <div class="info-icon">
+                <span class="material-icons">folder_open</span>
+              </div>
+              <div class="info-content">
+                <strong>Adicionando documento ao protocolo:</strong> {{ existingProtocol }}<br>
+                <small>O identificador único será gerado automaticamente com base no tipo do documento</small>
+              </div>
+            </div>
+
+            <!-- Informações Básicas -->
+            <div class="form-section-expanded">
+              <h6 class="section-title">Informações Básicas</h6>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="nome" class="form-label-expanded">Nome do Documento <span class="required">*</span></label>
+                  <input type="text" 
+                         id="nome" 
+                         class="form-control form-control-expanded" 
+                         [(ngModel)]="formData.nome"
+                         name="nome"
+                         placeholder="Ex: Ata da Reunião Plenária"
+                         required>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="dataDocumento" class="form-label-expanded">Data <span class="required">*</span></label>
+                  <input type="date" 
+                         id="dataDocumento" 
+                         class="form-control form-control-expanded"
+                         [(ngModel)]="formData.dataDocumento"
+                         name="dataDocumento"
+                         required>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="tipoDocumento" class="form-label-expanded">Tipo <span class="required">*</span></label>
+                  <select id="tipoDocumento" 
+                          class="form-control form-control-expanded"
+                          [(ngModel)]="formData.tipoDocumentoId"
+                          name="tipoDocumento"
+                          required>
+                    <option value="0" disabled>Selecione...</option>
+                    <option *ngFor="let tipo of tiposDocumento" [value]="tipo.id">
+                      {{ tipo.nome }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label for="assunto" class="form-label-expanded">Assunto</label>
+                  <input type="text" 
+                         id="assunto" 
+                         class="form-control form-control-expanded" 
+                         [(ngModel)]="formData.assunto"
+                         name="assunto"
+                         placeholder="Descreva brevemente o assunto">
+                </div>
+              </div>
+            </div>
+
+            <!-- Pessoas Envolvidas -->
+            <!-- <div class="form-section-expanded">
+              <h6 class="section-title">Pessoas Envolvidas</h6>
+              
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="interessado" class="form-label-expanded">Interessado</label>
+                  <input type="text" 
+                         id="interessado" 
+                         class="form-control form-control-expanded" 
+                         [(ngModel)]="formData.interessadoNome"
+                         name="interessado"
+                         placeholder="Nome do interessado">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="remetente" class="form-label-expanded">Remetente</label>
+                  <input type="text" 
+                         id="remetente" 
+                         class="form-control form-control-expanded" 
+                         [(ngModel)]="formData.remetenteNome"
+                         name="remetente"
+                         placeholder="Nome do remetente">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="destinatario" class="form-label-expanded">Destinatário</label>
+                  <input type="text" 
+                         id="destinatario" 
+                         class="form-control form-control-expanded" 
+                         [(ngModel)]="formData.destinatarioNome"
+                         name="destinatario"
+                         placeholder="Nome do destinatário">
+                </div>
+              </div>
+            </div> -->
+
+            <!-- Origem e Detalhes -->
+            <div class="form-section-expanded">
+              <h6 class="section-title">Origem e Detalhes</h6>
+              
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="orgaoOrigem" class="form-label-expanded">Órgão</label>
+                  <select id="orgaoOrigem" 
+                          class="form-control form-control-expanded"
+                          [(ngModel)]="formData.orgaoOrigem"
+                          name="orgaoOrigem">
+                    <option value="">Selecione...</option>
+                    <option *ngFor="let orgao of orgaosOrigem" [value]="orgao">
+                      {{ orgao }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="unidadeOrigem" class="form-label-expanded">Unidade</label>
+                  <input type="text" 
+                         id="unidadeOrigem" 
+                         class="form-control form-control-expanded" 
+                         [(ngModel)]="formData.unidadeOrigem"
+                         name="unidadeOrigem"
+                         placeholder="Unidade de origem">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="palavrasChave" class="form-label-expanded">Palavras-chave</label>
+                  <input type="text" 
+                         id="palavrasChave" 
+                         class="form-control form-control-expanded" 
+                         [(ngModel)]="formData.palavrasChave"
+                         name="palavrasChave"
+                         placeholder="reunião, plenária, deliberação">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-8 mb-3">
+                  <label for="observacoes" class="form-label-expanded">Observações</label>
+                  <textarea id="observacoes" 
+                            class="form-control form-control-expanded" 
+                            rows="1" 
+                            [(ngModel)]="formData.observacoes"
+                            name="observacoes"
+                            placeholder="Observações adicionais sobre o documento..."></textarea>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label-expanded">Configurações</label>
+                  <div class="form-check-container-expanded">
+                    <div class="form-check">
+                      <input class="form-check-input" 
+                             type="checkbox" 
+                             id="publico"
+                             [(ngModel)]="formData.publico"
+                             name="publico">
+                      <label class="form-check-label" for="publico">Documento Público</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" 
+                             type="checkbox" 
+                             id="confidencial"
+                             [(ngModel)]="formData.confidencial"
+                             name="confidencial">
+                      <label class="form-check-label" for="confidencial">Confidencial</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Arquivo -->
+            <div class="form-section-expanded">
+              <h6 class="section-title">Arquivo <span class="required">*</span></h6>
+              
+              <div class="file-upload-area-expanded">
+                <input type="file" 
+                       id="arquivo" 
+                       class="form-control form-control-expanded" 
+                       (change)="onFileSelected($event)"
+                       accept=".pdf,.doc,.docx,.mp3,.mp4"
+                       required>
+                <small class="form-text text-muted">
+                  Formatos aceitos: PDF, DOC, DOCX, MP3, MP4 • Tamanho máximo: 50MB
+                </small>
+                <div *ngIf="selectedFile" class="file-selected-expanded mt-2">
+                  <span class="material-icons">check_circle</span>
+                  <div class="file-info">
+                    <strong>{{ selectedFile.name }}</strong><br>
+                    <small>{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="form-actions-expanded">
+              <button type="button" 
+                      class="btn btn-secondary"
+                      (click)="onCancel()"
+                      [disabled]="isSubmitting">
+                Cancelar
+              </button>
+              <button type="submit" 
+                      class="btn btn-primary"
+                      [disabled]="isSubmitting || documentForm.invalid">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+                {{ isSubmitting ? 'Salvando Documento...' : 'Salvar Documento' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Sucesso -->
+<div class="success-overlay" *ngIf="showSuccessModal" (click)="showSuccessModal = false">
+  <div class="success-modal" (click)="$event.stopPropagation()">
+    <div class="success-content">
+      <span class="material-icons success-icon">check_circle</span>
+      <h4 class="success-title">Documento Inserido!</h4>
+      <p class="success-message">{{ submitMessage }}</p>
+      <div class="success-actions">
+        <button class="btn btn-primary" (click)="showSuccessModal = false">
+          <span class="material-icons me-1">done</span>
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

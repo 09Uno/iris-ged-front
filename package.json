@@ -30,7 +30,7 @@
     "html-to-pdfmake": "^2.5.17",
     "jquery": "^3.7.1",
     "jsdom": "^25.0.1",
-    "jspdf": "^2.5.2",
+    "jspdf": "^3.0.1",
     "jstree": "^3.3.17",
     "material": "^0.9.16",
     "ngx-quill": "^26.0.9",
@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.2.1",
-    "@angular/cli": "^18.2.1",
+    "@angular/cli": "^18.0.7",
     "@angular/compiler-cli": "^18.2.0",
     "@types/file-saver": "^2.0.7",
     "@types/html-to-pdfmake": "^2.4.4",

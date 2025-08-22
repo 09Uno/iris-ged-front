@@ -49,6 +49,56 @@
   margin-bottom: 10px;
 }
 
+/* Fullscreen button styles */
+.fullscreen-button {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.375rem;
+  margin-right: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullscreen-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.fullscreen-button .material-icons {
+  font-size: 18px;
+}
+
+/* Fullscreen editor styles */
+.fullscreen-editor {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  z-index: 10001 !important;
+}
+
+.fullscreen-editor .modal-content {
+  height: calc(100vh - 60px);
+}
+
+.fullscreen-editor .editor-container {
+  height: 100%;
+}
+
+.fullscreen-editor .quill-container {
+  height: calc(100% - 80px) !important;
+}
+
 #toolbar button {
   margin-right: 5px;
 }

@@ -9,8 +9,8 @@ import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, QuillModule } from 'ngx-quill';
 import 'quill/dist/quill.snow.css';
 import { DocumentService } from '../../services/documents/document.service';
-import { htmlItemDocumentToEdit } from '../../models/document/documentItemModel.config';
-import { HtmlItemDocumentToEdit } from '../../models/document/documentItemModel';
+import { htmlItemDocumentToEdit } from '../../types';
+import { HtmlItemDocumentToEdit } from '../../types';
 import { mapToHtmlItemDocumentToEdit } from './editor.config';
 import { lastValueFrom } from 'rxjs';
 import Quill from 'quill';
@@ -65,6 +65,9 @@ export class EditorHtmlComponent implements AfterViewInit {
   replaceTerm: string = '';
   currentSearchIndex: number = -1;
   private quillEditor: Quill | null = null;
+  
+  // Fullscreen property
+  isFullscreen: boolean = false;
 
   constructor(
     private documentService: DocumentService,
@@ -228,7 +231,25 @@ export class EditorHtmlComponent implements AfterViewInit {
     }
   }
 
+  toggleFullscreen() {
+    this.isFullscreen = !this.isFullscreen;
+    
+    if (this.isFullscreen) {
+      // Set dialog to fullscreen
+      this.dialogRef.updateSize('100vw', '100vh');
+      this.dialogRef.updatePosition();
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Reset dialog size
+      this.dialogRef.updateSize('80%', '90%');
+      this.dialogRef.updatePosition();
+      document.body.style.overflow = 'auto';
+    }
+  }
+
   closeDocument() {
+    // Reset body overflow when closing
+    document.body.style.overflow = 'auto';
     this.dialogRef.close();
   }
 }

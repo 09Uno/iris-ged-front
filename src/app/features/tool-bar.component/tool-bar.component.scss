@@ -8,6 +8,11 @@
   // justify-content: center; /* Alinha os itens ao centro verticalmente */
   // text-align: center;      /* Alinha o texto de cada elemento ao centro */
 }
+
+a{
+  cursor: pointer;
+}
+
 .button-opt {
   background-color: #00336600;
   color: #094c8c;
@@ -33,9 +38,7 @@
   color: white;
   border: none;
   cursor: pointer;
-  display: flex;
-  height: auto;
-  width: auto;
+  align-items: center;
 }
 
 
@@ -58,16 +61,8 @@
   height: 20px;
 }
 
-
-.menu-container {
-  // display: flex;
-  // justify-content: space-between;
-  // align-items: center;
-}
-
 .custom-toolbar {
   height: 40px !important;
-
   font-weight: bold;
   justify-content: center;
   background-color: #057db3;
@@ -111,7 +106,6 @@
     justify-content: center;
     color: #000000;
     margin-bottom: 20px;
-  
     padding: .5rem 1rem !important;
   }
 }
@@ -133,18 +127,6 @@
   height: 60px;
   border-radius: 10px;
 }
-
-/* Header Principal */
-// .header-bar {
-//   background-color: #003366;
-//   padding: 20px 20px;
-//   // border-bottom: 4px solid #FFD700; /* Corrigido para 'solid' */
-//   display: flex;
-//   position: fixed;
-//   // top: 68px; /* Garante que o header fique no topo da página */
-//   width: 100%; /* Faz o header ocupar toda a largura da janela */
-//   z-index: 1000; /* Garante que o header fique acima de outros elementos */
-// }
 
 /* Contêiner para o logo e título do header */
 .logo-bar {
@@ -173,18 +155,15 @@
 
 /* Barra Superior */
 .top-bar {
+  display: flex;
   background-color: #094c8c;
   padding: 0.5vw 0.5vw;
-  display: flex;
   align-items: center;
   justify-content: center;
   height: 10vw;
   max-height: 80px;
-
-  position: fixed; /* Corrigido para 'fixed' */
   top: 0; /* Garante que a barra superior fique no topo da janela */
   width: 100%; /* Faz a barra superior ocupar toda a largura da janela */
-  z-index: 1001; /* Garante que a barra superior fique acima do header */
   border-bottom: #ba9705 5px solid;
 }
 
@@ -202,17 +181,6 @@
   z-index: 1000; /* Garante que a linha fique acima da toolbar */
 }
 
-/* Toolbar Customizada */
-.custom-toolbar {
-  background-color: #e8e8e8;
-  display: flex; /* Corrigido para 'flex' */
-  position: fixed;
-  top: 98px; /* Ajustado para ficar logo abaixo da linha */
-  width: 100%;
-  height: 60px; /* Ajustado para a altura desejada */
-  z-index: 999; /* Garante que a toolbar fique abaixo da top-bar */
-  align-items: center; /* Alinha itens no centro verticalmente */
-}
 
 /* Estilos para ícones e elementos dentro da custom-toolbar */
 .example-icon {
@@ -273,6 +241,12 @@
   color: white;
 }
 
+.nav-item{
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   overflow-x: hidden;
@@ -284,6 +258,10 @@ body {
   text-align: center;
   border-bottom: 1px solid #002040;
   transition: width 0.3s ease;
+}
+.text-header{
+  font-size: 24px;
+  color: #000000;
 }
 .header img {
   height: 80px;

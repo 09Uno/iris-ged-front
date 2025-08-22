@@ -1,111 +1,258 @@
-<app-tool-bar 
-[title]="viewController.title"
-  [isProfessional]="isProfessional"
-  [isCorporative]="isCorporative"
-></app-tool-bar>
-<div class="container-fluid main" style="height: 100vh; overflow: hidden;">
-  <div class="row">
-    <div class="form-group col-md-4 search-container d-flex align-items-center">
-      <input class="form-control search-input rounded-2 py-2" placeholder="Buscar" id="example-search-input"
-        (ngModelChange)="format(null)" (input)="format($event)" (keydown.enter)="searchDocuments(callback)"
-        [ngModelOptions]="{standalone: true}" [(ngModel)]="managerAttributes.processIdentifierInput"
-        [disabled]="uiControllers.isLoading" />
-      <mat-icon class="search-icon cursor-pointer ml-2">search</mat-icon>
-      <button type="submit" class="btn btn-secondary buscar" (click)="searchDocumentsFromParent(callback)"
-        [disabled]="!managerAttributes.processIdentifierInput || uiControllers.isLoading">
-        buscar
-      </button>
-    </div>
+<!-- app.component.html -->
+<app-tool-bar [title]="viewController.title" [isProfessional]="isProfessional" [isCorporative]="isCorporative">
+</app-tool-bar>
 
-    <div style="height: 85px;" class="col-md-8 d-flex p-3 flex-wrap">
-      <!-- Botão para adicionar documentos-->
-      <button class="btn btn-primary me-2 p-3 border" title="Incluir Documentos." (click)="insertHtmlDocument()"
-        *ngIf="uiControllers.validProcess">
-        <span class="material-icons">note_add</span>
-      </button>
-      <!-- Botão para editar documentos -->
-      <button class="btn btn-primary me-2 p-3 border" title="Editar Documento." (click)="editHtmlDocument()"
-        *ngIf="managerAttributes.selectedDocument && uiControllers.editableDocument">
-        <span class="material-icons">edit</span>
-      </button>
-      <!-- Botão para modificar a ordem dos documentos na árvore -->
-      <button class="btn btn-primary me-2 p-3 border" title="Modificar Ordem dos Documentos."
-        *ngIf="uiControllers.validProcess && managerAttributes.documentCount >= 2">
-        <span class="material-icons">swap_vert</span>
-      </button>
-      <!-- Botão para assinar documentos -->
-      <button class="btn btn-primary me-2 p-3 border" title="Assinar Documento."
-        *ngIf="managerAttributes.selectedDocument">
-        <span class="material-icons">assignment_turned_in</span>
-      </button>
+<div class="container-fluid main">
+  <!-- Barra de Pesquisa e Botões -->
+  <div class="row main-content">
+    <div class="col-12 form-column">
+      <div class="card form-card">
+        <div class="card-body form-body">
+          <div class="form-section-expanded">
+            <h6 class="section-title">Pesquisa e Ações</h6>
 
-      <!-- Botão para tramitar documentos -->
-      <button class="btn btn-primary me-2 p-3 border" title="Tramitar." *ngIf="managerAttributes.selectedDocument">
-        <span class="material-icons">move_up</span>
-      </button>
-      <button class="btn btn-primary me-2 p-3 border" title="Baixar." *ngIf="managerAttributes.selectedDocument"
-        (click)="downloadDocumentAsPdf()">
-        <span class="material-icons">download</span>
-      </button>
-      <!-- Botão para deletar documentos -->
-      <button class="btn btn-primary me-2 p-3 border" title="Deletar Documento."
-        *ngIf="managerAttributes.selectedDocument">
-        <span class="material-icons">delete</span>
-      </button>
+            <div class="row">
+              <div class="col-md-4">
+                <div class="search-container-iris">
+                  <!-- Toggle de tipo de busca -->
+                  <div class="search-type-toggle mb-2">
+                    <div class="btn-group" role="group">
+                      <button type="button" class="btn btn-sm" [class.btn-primary]="searchType === 'protocol'"
+                        [class.btn-outline-primary]="searchType !== 'protocol'"
+                        (click)="searchType = 'protocol'; clearSearchResults()">
+                        <span class="material-icons-small">folder</span> Protocolo
+                      </button>
+                      <button type="button" class="btn btn-sm" [class.btn-primary]="searchType === 'identifier'"
+                        [class.btn-outline-primary]="searchType !== 'identifier'"
+                        (click)="searchType = 'identifier'; clearSearchResults()">
+                        <span class="material-icons-small">fingerprint</span> Identificador
+                      </button>
+                      <button type="button" class="btn btn-sm" [class.btn-primary]="searchType === 'document'"
+                        [class.btn-outline-primary]="searchType !== 'document'"
+                        (click)="searchType = 'document'; clearSearchResults()">
+                        <span class="material-icons-small">description</span> Documento
+                      </button>
+                    </div>
+                  </div>
 
+                  <!-- Busca por protocolo -->
+                  <div *ngIf="searchType === 'protocol'" class="search-field">
+                    <label class="form-label-expanded">Buscar por Protocolo:</label>
+                    <div class="search-input-group">
+                      <input class="form-control form-control-expanded" placeholder="Digite o número do protocolo"
+                        (ngModelChange)="format($event)" (keydown.enter)="performSearch(defaultCallback)"
+                        [(ngModel)]="protocolSearch" [disabled]="uiControllers.isLoading" />
+                      <button type="submit" class="btn btn-primary search-btn" (click)="performSearch(defaultCallback)"
+                        [disabled]="!protocolSearch || uiControllers.isLoading">
+                        <span class="material-icons">search</span>
+                      </button>
+                    </div>
+                  </div>
 
+                  <!-- Busca por identificador -->
+                  <div *ngIf="searchType === 'identifier'" class="search-field">
+                    <label class="form-label-expanded">Buscar por Identificador:</label>
+                    <div class="search-input-group">
+                      <input class="form-control form-control-expanded"
+                        placeholder="Digite o identificador único do documento"
+                        (keydown.enter)="performSearch(defaultCallback)" [(ngModel)]="documentIdentifier"
+                        [disabled]="uiControllers.isLoading" />
+                      <button type="submit" class="btn btn-primary search-btn" (click)="performSearch(defaultCallback)"
+                        [disabled]="!documentIdentifier || uiControllers.isLoading">
+                        <span class="material-icons">search</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Busca por nome de documento -->
+                  <div *ngIf="searchType === 'document'" class="search-field">
+                    <label class="form-label-expanded">Buscar por Nome:</label>
+                    <div class="search-input-group">
+                      <input class="form-control form-control-expanded" placeholder="Digite o nome do documento"
+                        (keydown.enter)="performSearch(defaultCallback)" [(ngModel)]="documentNameSearch"
+                        [disabled]="uiControllers.isLoading" />
+                      <button type="submit" class="btn btn-primary search-btn" (click)="performSearch(defaultCallback)"
+                        [disabled]="!documentNameSearch || uiControllers.isLoading">
+                        <span class="material-icons">search</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Indicador do protocolo selecionado -->
+                  <div *ngIf="selectedProtocol" class="selected-protocol-info mt-2">
+                    <small class="text-muted">
+                      <span class="material-icons-small">info</span>
+                      Protocolo: <strong>{{ selectedProtocol }}</strong>
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-8">
+                <label class="form-label-expanded">Ações do Documento:</label>
+                <div class="action-buttons-container">
+                  <button class="btn btn-iris-action" title="Incluir Documentos." (click)="openInsertDocumentModal()"
+                    *ngIf="uiControllers.validProcess">
+                    <span class="material-icons">note_add</span>
+                  </button>
+
+                  <button class="btn btn-iris-action" title="Editar Documento." (click)="editHtmlDocument()"
+                    *ngIf="managerAttributes.selectedDocument && uiControllers.editableDocument">
+                    <span class="material-icons">edit</span>
+                  </button>
+
+                  <button class="btn btn-iris-action" title="Modificar Ordem dos Documentos."
+                    *ngIf="uiControllers.validProcess && managerAttributes.documentCount >= 2">
+                    <span class="material-icons">swap_vert</span>
+                  </button>
+
+                  <button class="btn btn-iris-action" title="Assinar Documento."
+                    *ngIf="managerAttributes.selectedDocument">
+                    <span class="material-icons">assignment_turned_in</span>
+                  </button>
+
+                  <button class="btn btn-iris-action" title="Tramitar." *ngIf="managerAttributes.selectedDocument">
+                    <span class="material-icons">move_up</span>
+                  </button>
+
+                  <button class="btn btn-iris-action" title="Baixar." *ngIf="managerAttributes.selectedDocument"
+                    (click)="downloadDocumentAsPdf()">
+                    <span class="material-icons">download</span>
+                  </button>
+
+                  <button class="btn btn-iris-action btn-iris-danger" title="Deletar Documento."
+                    *ngIf="managerAttributes.selectedDocument">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="row" style="height: calc(100vh - 100px);">
-    <!-- Ajuste a altura do row para ocupar o restante da tela -->
-    <div class="col-md-4 d-flex" style="height: 100%;">
-      <div [ngClass]="htmlClassAndId.cardJsTreeClass" style="flex-grow: 1; height: 100%;">
-        <div *ngIf="messages.errorMessage" [innerHTML]="messages.errorMessage" class="erroProcesso alert alert-danger">
+  <!-- Conteúdo Principal -->
+  <div class="row main-content">
+    <!-- Árvore de Documentos -->
+    <div class="col-md-4 tree-column">
+      <div class="card form-card">
+        <div class="card-body form-body">
+          <div class="form-section-expanded tree-section">
+            <h6 class="section-title">
+              Documentos do Protocolo
+              <span *ngIf="selectedProtocol || managerAttributes.processIdentifier" class="protocol-number">
+                {{ selectedProtocol || managerAttributes.processIdentifier }}
+              </span>
+            </h6>
+
+            <div *ngIf="messages.errorMessage" class="alert alert-danger message-sm">
+              <div [innerHTML]="messages.errorMessage"></div>
+            </div>
+            <div *ngIf="messages.alertMessage" class="alert alert-warning message-sm">
+              <div [innerHTML]="messages.alertMessage"></div>
+            </div>
+
+            <div class="document-tree-iris" id="documentTree"></div>
+          </div>
         </div>
-        <div *ngIf="messages.alertMessage" [innerHTML]="messages.alertMessage" class="erroProcesso alert alert-warning">
-        </div>
-        <div class="documentTree" id="documentTree"></div>
       </div>
     </div>
 
-    <div class="col-md-8" style="height: 100%;">
-      <div [ngClass]="htmlClassAndId.cardClass" style="height: 100%;">
-        <div class="card-header">
-          <h4>{{viewController.subtitle }}</h4>
-        </div>
-        <div class="card-body" style="height: calc(100% - 56px);">
+    <!-- Visualizador de Documentos -->
+    <div class="col-md-8 viewer-column">
+      <div class="card form-card">
+        <div class="card-body form-body">
+          <div class="form-section-expanded viewer-section">
+            <div class="viewer-header">
+              <h6 class="section-title">{{viewController.subtitle || 'Visualizador de Documentos'}}</h6>
+              <button *ngIf="managerAttributes.selectedDocument" class="btn btn-sm btn-outline-primary fullscreen-btn"
+                title="Abrir em tela cheia" (click)="openFullscreen()">
+                <span class="material-icons">fullscreen</span>
+              </button>
+            </div>
 
-          <ng-container *ngIf="visibleButtons.showInsertDocumentButton">
-            <app-insert-document [modal]="viewController.selectedModalNumber"
-              [processIdentifier]="managerAttributes.processIdentifier"
-              (fazerBuscaDocumentos)="searchDocuments(callback)" (startDocumentCallback)="startDocument($event)">
-            </app-insert-document>
-          </ng-container>
+            <div class="viewer-content">
+              <ng-container *ngIf="managerAttributes.selectedDocument">
+                <iframe [src]="managerAttributes.selectedDocument" class="document-viewer-iris">
+                </iframe>
+              </ng-container>
 
-          <!-- <ng-container *ngIf="uiControllers.showEditor;">
-            <app-editor-html [processIdentifier]="managerAttributes.processIdentifier"
-              [documentId]="managerAttributes.documentId" [content]="managerAttributes.selectedDocumentString"
-              (startDocumentCallback)="startDocument($event)"></app-editor-html>
-          </ng-container> -->
-
-          <ng-container *ngIf="managerAttributes.selectedDocument;">
-            <iframe style="font-family: Arial, Helvetica, sans-serif;" [src]="managerAttributes.selectedDocument"
-              width="100%" height="100%"></iframe>
-          </ng-container>
-
-
-          
-
+              <div *ngIf="!managerAttributes.selectedDocument" class="empty-viewer">
+                <span class="material-icons empty-icon">description</span>
+                <p class="empty-text">Selecione um documento para visualizar</p>
+                <p class="empty-hint">Use o botão "Incluir Documentos" para adicionar novos documentos ao protocolo</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Modal de Inserção de Documentos -->
+<!-- No template principal -->
+<!-- Modal de Inserção de Documentos -->
+<!-- Modal de Inserção de Documentos -->
+<div class="insert-document-modal" *ngIf="showInsertModal" (click)="closeInsertModal()">
+  <div class="insert-modal-content" (click)="$event.stopPropagation()">
+    <div class="insert-modal-header">
+      <h5 class="insert-modal-title">Inserir Novo Documento</h5>
+      <div class="insert-modal-protocol" *ngIf="selectedProtocol">
+        <small>Protocolo: <strong>{{selectedProtocol}}</strong></small>
+      </div>
+      <button class="btn btn-sm btn-light close-insert-btn" (click)="closeInsertModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
 
+    <div class="insert-modal-body">
+      <app-insert-document [modal]="1" [processIdentifier]="selectedProtocol || managerAttributes.processIdentifier"
+        (fazerBuscaDocumentos)="onDocumentInserted()" (startDocumentCallback)="startDocument($event)"
+        (documentSaved)="closeInsertModal()">
+      </app-insert-document>
+    </div>
+  </div>
+</div>
+
+<!-- Template separado -->
+<ng-template #insertDocumentTemplate>
+  <app-insert-document [modal]="1" [processIdentifier]="selectedProtocol || managerAttributes.processIdentifier"
+    (fazerBuscaDocumentos)="onDocumentInserted()" (startDocumentCallback)="startDocument($event)"
+    (documentSaved)="closeInsertModal()">
+  </app-insert-document>
+</ng-template>
+
+<!-- Loading Overlay -->
 <div id="loading-overlay" *ngIf="uiControllers.isLoading">
-  <div class="progress-bar-loading" *ngIf="uiControllers.isLoading">
+  <div class="progress-bar-loading">
     <div class="progress-bar-loading-value"></div>
+  </div>
+</div>
+
+<!-- Modal de Tela Cheia -->
+<div class="fullscreen-modal" *ngIf="showFullscreenModal" (click)="closeFullscreen()">
+  <div class="fullscreen-content" (click)="$event.stopPropagation()">
+    <div class="fullscreen-header">
+      <h5 class="fullscreen-title">{{managerAttributes.name}}</h5>
+      <div class="fullscreen-actions">
+        <button *ngIf="uiControllers.editableDocument" class="btn btn-sm btn-light" title="Editar documento"
+          (click)="editHtmlDocument()">
+          <span class="material-icons">edit</span>
+        </button>
+        <button class="btn btn-sm btn-light" title="Baixar documento" (click)="downloadDocumentAsPdf()">
+          <span class="material-icons">download</span>
+        </button>
+        <button class="btn btn-sm btn-light" title="Fechar tela cheia" (click)="closeFullscreen()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+    <div class="fullscreen-viewer">
+      <iframe [src]="managerAttributes.selectedDocument" class="fullscreen-iframe">
+      </iframe>
+    </div>
   </div>
 </div>

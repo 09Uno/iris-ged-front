@@ -1,39 +1,40 @@
 <div class="full-width-container">
-  
+    <app-tool-bar [isHome]="true" [isCorporative]="isCorporative"></app-tool-bar>
+    <div class="content">
+        <div *ngIf="!isAuthenticated" class="card col-md-4 mt-3 ml-3 mr-3">
+            <h5 class="card-header">
+                Você não está logado.
+            </h5>
+            <div class="card-body">
+                <div class="card-text">
+                    Use o botão na parte superior direita para logar.
+                    Ao tentar acessar você será redirecionado automaticamente para a plataforma de login da Microsoft.
+                </div>
+            </div>
+        </div>
 
+        <div *ngIf="isAuthenticated" class="card col-md-4 mt-3 ml-3 mr-3" style="max-width: 400px;">
+            <img [src]="home" alt="Processos" class="card-img-top"
+                style="max-height: 500px; max-width: 400px; object-fit: cover;">
+            <div class="card-body">
+                <h4 style="font-weight: 500; line-height: 1.2;">IRIS GED</h4>
+                <p>Sistema integrado de gestão documental que centraliza, organiza e controla todo o ciclo de vida dos
+                    documentos corporativos, assegurando eficiência e conformidade nos processos de digitalização,
+                    armazenamento e recuperação de informações.</p>
+                <a href="/documentos" class="link-with-arrow">
+                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                    Acessar Sistema
+                </a>
+            </div>
+        </div>
+    </div>
 
-    <app-tool-bar 
-      [isProfessional]="isProfessional"
-      [isCorporative]="isCorporative"
-      [isHome]="true"
-    ></app-tool-bar>
-  <div class="content">
-      <div *ngIf="!isAuthenticated" class="card col-md-4 mt-3 ml-3 mr-3">
-          <h5 class="card-header">
-              Você não está logado.
-          </h5>
-          <div class="card-body">
-              <div class="card-text">
-                  Use o botão na parte superior direita para logar.
-                  Ao tentar acessar você será redirecionado automaticamente para a plataforma de login da Microsoft.
-              </div>
-          </div>
-      </div>
-
-      <div *ngIf="isAuthenticated" class="card col-md-4 mt-3 ml-3 mr-3" style="max-width: 400px;">
-          <img [src]="home"  alt="Processos" class="card-img-top" style="max-height: 200px; object-fit: cover;">
-          <div class="card-body">
-              <h3>IRIS GESTÃO ELETRÔNICA DE DOCUMENTOS</h3>
-              <p>Manipule Arquivos internos do CREA-BA</p>
-              <a href="/documentos">
-                  <i class="bi bi-arrow-right"></i>
-                  Visite
-              </a>
-          </div>
-      </div>
-  </div>
-
-  <footer>
-      © 2024 Coordenação de Tecnologia - Conselho Regional de Engenharia e Agronomia da Bahia. <br>Todos os direitos reservados.
-  </footer>
+    <footer>
+        © 2025 Coordenação de Tecnologia - Conselho Regional de Engenharia e Agronomia da Bahia. <br>Todos os direitos
+        reservados.
+    </footer>
 </div>

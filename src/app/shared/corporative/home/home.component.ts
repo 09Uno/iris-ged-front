@@ -48,6 +48,7 @@ export class HomeComponent  {
   ngOnInit(): void {
     const account = this.authService.getAccount();
     this.isAuthenticated = account ? true : false;
+    this.isCorporative = true;
   }
 
 }

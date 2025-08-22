@@ -1,4 +1,4 @@
-import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit } from '../../models/document/documentItemModel';
+import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, AdvancedSearchRequest, AdvancedSearchResponse } from '../../types';
 import { Injectable } from '@angular/core';
 import { catchError, lastValueFrom, Observable, of, tap } from 'rxjs';
 import { FileUtils } from '../../utils/FileUtils';
@@ -22,10 +22,19 @@ export class DocumentService {
 
   async fetchDocumentFile(documentId: number): Promise<Observable<Blob>> {
     return (await this.gedApi.fetchDocumentFile(documentId)).pipe(
-      tap(() => console.log('Document successfully loaded.')),
+      tap((blob) => {
+        console.log('Document successfully loaded:', blob);
+        console.log('Blob size:', blob.size);
+      }),
       catchError((error) => {
         console.error('Error loading document:', error);
-        return of(new Blob());
+        console.error('Error details:', {
+          status: error.status,
+          message: error.message,
+          url: error.url
+        });
+        // Retorna um blob vazio mas também relança o erro para o component tratar
+        throw error;
       })
     );
   }
@@ -70,6 +79,28 @@ export class DocumentService {
   updateDocumentHtml(documentItem: HtmlItemDocumentToEdit): Promise<Observable<any>> {
     return this.gedApi.updateHtmlDocument(documentItem);
   }
-  
+
+  async advancedSearch(searchRequest: AdvancedSearchRequest): Promise<Observable<AdvancedSearchResponse>> {
+    return (await this.gedApi.advancedSearch(searchRequest)).pipe(
+      tap(() => console.log('Advanced search completed successfully.')),
+      catchError((error) => {
+        console.error('Error in advanced search:', error);
+        return of({
+          success: false,
+          data: [],
+          pagination: {
+            totalCount: 0,
+            page: 1,
+            pageSize: 10,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false
+          },
+          searchSummary: '',
+          message: 'Erro na busca'
+        } as AdvancedSearchResponse);
+      })
+    );
+  }
 
 }

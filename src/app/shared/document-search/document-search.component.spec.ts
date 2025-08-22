@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CatComponent } from './cat.component';
+import { DocumentSearchComponent } from './document-search.component';
 
-describe('CatComponent', () => {
-  let component: CatComponent;
-  let fixture: ComponentFixture<CatComponent>;
+describe('DocumentSearchComponent', () => {
+  let component: DocumentSearchComponent;
+  let fixture: ComponentFixture<DocumentSearchComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CatComponent]
+      imports: [DocumentSearchComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(CatComponent);
+    fixture = TestBed.createComponent(DocumentSearchComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

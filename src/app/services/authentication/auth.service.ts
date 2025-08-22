@@ -20,14 +20,14 @@ export class AuthService {
     });
   }
 
-  apiUrl = 'https://localhost:5001/';
+  apiUrl = 'https://localhost/';
 
   login() {
     const currentUrl = this.router.url;
     localStorage.setItem('redirectUrl', currentUrl);  
     const loginRequest = {
       // Usando o escopo personalizado configurado no Azure AD
-      scopes: ['api://399b1b16-84cc-48d2-b811-95c66a50a6fb/acess_as_user/front'], // Substitua pelo seu escopo
+      scopes: ['api://a9d996f0-0460-4707-92f3-753372e57dbc/IRIS_GED_front_end'], // Substitua pelo seu escopo
       state: currentUrl,
     };
     this.msalService.loginRedirect(loginRequest);
@@ -105,7 +105,7 @@ export class AuthService {
     return null;
   }
 
-  async getToken(scopes: string[] = ['api://399b1b16-84cc-48d2-b811-95c66a50a6fb/acess_as_user/front']): Promise<string | null> {
+  async getToken(scopes: string[] = ['api://a9d996f0-0460-4707-92f3-753372e57dbc/IRIS_GED_front_end']): Promise<string | null> {
     try {
       // Solicita o token com o escopo personalizado
       const result = await this.msalService.instance.acquireTokenSilent({

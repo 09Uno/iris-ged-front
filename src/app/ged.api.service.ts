@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { catchError, Observable, throwError, lastValueFrom } from 'rxjs';
-import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit } from './models/document/documentItemModel';
+import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, NewDocumentDTO, AdvancedSearchRequest, AdvancedSearchResponse } from './types';
 import { AuthService } from './services/authentication/auth.service';
 
-export const apiUrl = 'https://localhost:5001/';
+export const apiUrl = 'http://localhost/';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +32,7 @@ export default class GedApiService {
 
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-      return this.http.post<any>(`${apiUrl}api/Document/SaveDocs`, formData, { headers, observe: 'response' }).pipe(
+      return this.http.post<any>(`${apiUrl}v1/Document/SaveDocs`, formData, { headers, observe: 'response' }).pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error in saveDocument request:', error);
           console.error('Status:', error.status);
@@ -59,7 +59,7 @@ export default class GedApiService {
 
     return this.authService.getToken().then((token: any) => {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-      return this.http.post<any>(`${apiUrl}api/Document/SaveDocsHtml`, formData, { headers }).pipe(
+      return this.http.post<any>(`${apiUrl}v1/Document/SaveDocsHtml`, formData, { headers }).pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error in saveHtmlDocument request:', error);
           console.error('Status:', error.status);
@@ -75,7 +75,7 @@ export default class GedApiService {
       const token = await this.authService.getToken();
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
       
-      const response  =  this.http.get(`${apiUrl}api/Document/DownloadDocumetAsPdf?documentId=${documentId}`, {
+      const response  =  this.http.get(`${apiUrl}v1/Document/DownloadDocumetAsPdf?documentId=${documentId}`, {
         headers,
         responseType: 'blob' as 'json'
       });
@@ -99,7 +99,7 @@ export default class GedApiService {
 
     return this.authService.getToken().then((token: any) => {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-      return this.http.post<any>(`${apiUrl}api/Document/EditDocsHtml`, formData, { headers }).pipe(
+      return this.http.post<any>(`${apiUrl}v1/Document/EditDocsHtml`, formData, { headers }).pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error in updateHtmlDocument request:', error);
           return throwError(() => new Error('Document update failed'));
@@ -114,7 +114,7 @@ export default class GedApiService {
     
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     const encodedString = encodeURIComponent(identifier);
-    return this.http.get<DocumentItem[]>(`${apiUrl}api/Document/getDocs?processIdentifier=${encodedString}`, { headers });
+    return this.http.get<DocumentItem[]>(`${apiUrl}v1/Document/getDocs?processIdentifier=${encodedString}`, { headers });
   }
 
   // Método para buscar arquivo de um documento
@@ -122,7 +122,7 @@ export default class GedApiService {
 
     return this.authService.getToken().then((token: any) => {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-      return this.http.get(`${apiUrl}api/Document/DownloadDocument?documentId=${documentId}`, {
+      return this.http.get(`${apiUrl}v1/Document/DownloadDocument?documentId=${documentId}`, {
         responseType: 'blob', headers
       });
     });
@@ -143,7 +143,7 @@ export default class GedApiService {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
   
       // Certifique-se de que o URL da API está correto
-      return this.http.get(`${apiUrl}api/Auth/ValidateToken`, { headers }).subscribe({
+      return this.http.get(`${apiUrl}v1/Auth/ValidateToken`, { headers }).subscribe({
         next: (response: any) => {
           console.log('Response:', response);
           return response;
@@ -165,7 +165,7 @@ export default class GedApiService {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
   
       // Certifique-se de que o URL da API está correto
-      return this.http.get(`${apiUrl}api/Auth/LogOutGovBr?token=${token}`, { headers }).subscribe({
+      return this.http.get(`${apiUrl}v1/Auth/LogOutGovBr?token=${token}`, { headers }).subscribe({
         next: (response: any) => {
           console.log('Response:', response);
           return response;
@@ -176,6 +176,77 @@ export default class GedApiService {
         }});
     } catch (error) {
       console.error('Erro ao tentar fazer logout:', error);
+      throw error;
+    }
+  }
+
+  // Método para salvar um novo documento usando NewDocumentDTO
+  async saveNewDocument(document: NewDocumentDTO): Promise<Observable<any>> {
+    const formData = new FormData();
+    
+    // Map DTO properties to FormData (now using English field names for API)
+    formData.append('Name', document.name);
+    formData.append('DocumentDate', document.documentDate);
+    formData.append('File', document.file);
+    formData.append('DocumentTypeId', document.documentTypeId.toString());
+    if (document.subject) formData.append('Subject', document.subject);
+    if (document.interestedPartyName) formData.append('InterestedPartyName', document.interestedPartyName);
+    if (document.senderName) formData.append('SenderName', document.senderName);
+    if (document.recipientName) formData.append('RecipientName', document.recipientName);
+    if (document.originAgency) formData.append('OriginAgency', document.originAgency);
+    if (document.originUnit) formData.append('OriginUnit', document.originUnit);
+    formData.append('Status', document.status);
+    formData.append('IsPublic', document.isPublic.toString());
+    formData.append('IsConfidential', document.isConfidential.toString());
+    if (document.observations) formData.append('Observations', document.observations);
+    if (document.keywords) formData.append('Keywords', document.keywords);
+    formData.append('CreatorUserId', document.creatorUserId.toString());
+    // New simplified protocol-based structure
+    if (document.existingProtocol) formData.append('ExistingProtocol', document.existingProtocol);
+    // TreeOrder will be calculated automatically on backend
+
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+      return this.http.post<any>(`${apiUrl}v1/Document/SaveDocument `, formData, { 
+        headers, 
+        observe: 'response' 
+      }).pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error in saveNewDocument request:', error);
+          console.error('Status:', error.status);
+          console.error('Message:', error.message);
+          return throwError(error);
+        })
+      );
+    } catch (error) {
+      console.error('Error while constructing FormData:', error);
+      throw error;
+    }
+  }
+
+  // Método para busca avançada de documentos
+  async advancedSearch(searchRequest: AdvancedSearchRequest): Promise<Observable<AdvancedSearchResponse>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
+
+      return this.http.post<AdvancedSearchResponse>(`${apiUrl}v1/Document/AdvancedSearch`, searchRequest, { 
+        headers 
+      }).pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error in advancedSearch request:', error);
+          console.error('Status:', error.status);
+          console.error('Message:', error.message);
+          return throwError(error);
+        })
+      );
+    } catch (error) {
+      console.error('Error in advancedSearch:', error);
       throw error;
     }
   }

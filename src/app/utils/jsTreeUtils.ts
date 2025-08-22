@@ -1,4 +1,4 @@
-import { DocumentFetchDTO } from '../models/document/documentItemModel';
+import { DocumentFetchDTO } from '../types';
 import { FileUtils } from '../utils/FileUtils';
 
 declare var $: any;
@@ -18,10 +18,24 @@ export class JsTreeUtil {
     processIdentifier: string, 
     onSelectCallback: (id: number, extension: string, name: string) => void
   ): void {
-    $(`#${elementId}`).jstree('destroy').empty();
-    $(`#${elementId}`).jstree({
+    console.log('JsTreeUtil.initializeJsTree chamado com:', {
+      elementId,
+      documents,
+      processIdentifier,
+      documentsLength: documents?.length
+    });
+    
+    const element = $(`#${elementId}`);
+    console.log('Elemento encontrado:', element.length > 0 ? 'SIM' : 'NÃO');
+    
+    element.jstree('destroy').empty();
+    
+    const treeData = this.mapDocumentsToJsTreeData(documents, processIdentifier);
+    console.log('Dados mapeados para árvore:', treeData);
+    
+    element.jstree({
       core: {
-        data: this.mapDocumentsToJsTreeData(documents, processIdentifier),
+        data: treeData,
         check_callback: true,
         themes: {
           stripes: true
@@ -32,36 +46,64 @@ export class JsTreeUtil {
 
     // Set up the document selection event
     $(`#${elementId}`).on('select_node.jstree', (event: any, data: any) => {
+      console.log('Evento select_node.jstree disparado:', { event, data });
+      console.log('Node selecionado:', data.node);
+      
       if (data.node.id === 'root_process') {
+        console.log('Node raiz selecionado, ignorando...');
         return;
       }
+      
       const selectedDocumentId = parseInt(data.node.id, 10);
-      const extension = data.node.a_attr.extension;
-      const name = data.node.a_attr.name;
+      const extension = data.node.a_attr?.extension;
+      const name = data.node.a_attr?.name;
+      
+      console.log('Dados extraídos do node:', {
+        selectedDocumentId,
+        extension,
+        name
+      });
+      
+      console.log('Chamando callback com:', { selectedDocumentId, extension, name });
       onSelectCallback(selectedDocumentId, extension, name);
     });
   }
 
    
   private static mapDocumentsToJsTreeData(documents:  DocumentFetchDTO[] , processIdentifier: string): any[] {
-    if (documents.length === 0) return [];
+    console.log('mapDocumentsToJsTreeData chamado com:', {
+      documents,
+      processIdentifier,
+      documentsLength: documents?.length
+    });
+    
+    if (!documents || documents.length === 0) {
+      console.log('Nenhum documento encontrado, retornando array vazio');
+      return [];
+    }
 
-    return [
+    const mappedData = [
       {
         id: "root_process",
-        text: `Processo ${processIdentifier}`,
+        text: `Protocolo ${processIdentifier}`,
         state: { opened: true },
-        children: documents.map(doc => ({
-          id: doc.id.toString(),
-          text: doc.fileName,
-          icon: FileUtils.getDocumentIcon(doc.fileExtension),
-          a_attr: {
-             extension: doc.fileExtension,
-             name: doc.fileName,
-           }
-        }))
+        children: documents.map(doc => {
+          console.log('Mapeando documento:', doc);
+          return {
+            id: doc.id.toString(),
+            text: doc.fileName,
+            icon: FileUtils.getDocumentIcon(doc.fileExtension),
+            a_attr: {
+               extension: doc.fileExtension,
+               name: doc.fileName,
+             }
+          };
+        })
       }
     ];
+    
+    console.log('Dados mapeados finais:', mappedData);
+    return mappedData;
   }
 
  

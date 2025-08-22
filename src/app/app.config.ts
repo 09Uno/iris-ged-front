@@ -27,9 +27,10 @@ const isIE = window.navigator.userAgent.indexOf('MSIE ') > -1 || window.navigato
 export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      clientId: '399b1b16-84cc-48d2-b811-95c66a50a6fb', // Substitua pelo seu Client ID
-      authority: 'https://login.microsoftonline.com/9476a667-1a5a-4cbd-8571-a0e5080b330d/discovery/v2.0/keys', // Substitua pelo seu Tenant ID
-      redirectUri: 'https://localhost:4200', // Atualize se necessário
+       clientId: 'a9d996f0-0460-4707-92f3-753372e57dbc', 
+      authority: 'https://login.microsoftonline.com/9476a667-1a5a-4cbd-8571-a0e5080b330d/discovery/v2.0/keys', 
+      // redirectUri: 'https://irisged.creaba.org.br'
+      redirectUri: 'http://localhost:4200', 
     },
     cache: {
       cacheLocation: BrowserCacheLocation.LocalStorage, // Usa LocalStorage para persistir tokens

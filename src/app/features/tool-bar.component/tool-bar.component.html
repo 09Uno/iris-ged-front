@@ -1,68 +1,66 @@
-<div class="custom-toolbar">
-  <div class="top-bar">
-    <button class="button" (click)="gotoHome()" title="Home">
-      <img [src]="logo" class="top-bar-logo">
+<div class="top-bar">
+  <button class="button" [routerLink]="['/pesquisar-documentos']" title="Dashboard - Pesquisar Documentos">
+    <img title="logo" [src]="logo" class="top-bar-logo">
+  </button>
+</div>
+
+<div class="header-bar"></div>
+<mat-toolbar class="main" color="primary">
+  <span class="text-header" *ngIf="!(isAuthenticated$ | async)">IRIS - Sistema Inteligente de Integração de
+    Recursos</span>
+  <nav *ngIf="(isAuthenticated$ | async) && !isHome" class="navbar navbar-expand-md navbar-light">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+      aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
     </button>
-  </div>
 
-  <!-- <div class="header-bar"></div> -->
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown" *ngIf="isCorporative">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            Gestão de Documentos Corporativa
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" [routerLink]="['/pesquisar-documentos']">Pesquisar Documentos</a></li>
+            <li><a class="dropdown-item" [routerLink]="['/listar-documentos']">Listar Documentos</a></li>
+            <li><a class="dropdown-item" [routerLink]="['/documentos']">Gerenciar Documentos</a></li>
+            <li><a class="dropdown-item" [routerLink]="['/inserir-documento']">Inserir Documento</a></li>
+            <li><a class="dropdown-item" [routerLink]="['/inserir-arquivos']">Inserir Arquivos</a></li>
+            <li><a class="dropdown-item" [routerLink]="['/video-gallery']">Galeria de Vídeos</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" [routerLink]="['/home-professional']">Ambiente Profissional</a></li>
+          </ul>
+        </li>
 
-  <mat-toolbar class="main" color="primary">
-    <!-- Botão de Menu Lateral -->
-    <div *ngIf="isAuthenticated$ | async" class="menu-container">
-
-      <div class="menu-items">
-
-        <div class="navigation-bar">
-
-          <nav *ngIf="isAuthenticated$  && isHome" class="navbar navbar-expand-md navbar-light">
-            <a class="navbar-brand" href="/">IRIS</a>
-            <span class="navbar-text">Sistema Inteligente de Integração de Recursos</span>
-          </nav>
-          
-          <div *ngIf="isCorporative && !isHome" class="dropdown">
-            <button class="btn btn-link dropdown-toggle" type="button" id="dropdownMenuButton1"
-              data-bs-toggle="dropdown" aria-expanded="false">
-              Gestão de Documentos Corporativa
-            </button>
-            <ul *ngIf="isCorporative && !isHome" class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-              <li><a class="dropdown-item" [routerLink]="['/documentos']">Gerenciar Documentos Processos</a></li>
-              <li><a class="dropdown-item" [routerLink]="['/inserir-arquivos']">Salvar Gravações de Reuniões</a></li>
-              <li><a class="dropdown-item" [routerLink]="['/video-gallery']">Visualizar Gravações</a></li>
-              <li><a class="dropdown-item" [routerLink]="['/home-professional']">Ambiente Profissional</a></li>
-            </ul>
-          </div>
-
-          <div *ngIf="isProfessional && !isHome" class="dropdown">
-            <button class="btn btn-link dropdown-toggle" type="button" id="dropdownMenuButton1"
-              data-bs-toggle="dropdown" aria-expanded="false">
-              Gestão Profissional
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-              <li><a class="dropdown-item" [routerLink]="['/cat']">Geração de CAT</a></li>
-              <li><a class="dropdown-item" [routerLink]="['/home-corporative']">Ambiente Corporativo</a></li>
-              <!-- <li><a class="dropdown-item" [routerLink]="['/inserir-arquivos']">ASSINATURA CAT</a></li> -->
-            </ul>
-          </div>
-
-        </div>
-      </div>
+        <li class="nav-item dropdown" *ngIf="isProfessional">
+          <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+            Gestão Profissional
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li><a class="dropdown-item" [routerLink]="['/cat']">Geração de CAT</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" [routerLink]="['/home-corporative']">Ambiente Corporativo</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
-    <!-- Espaçador e Título -->
-    <span class="example-spacer"></span>
+  </nav>
 
-    <!-- Ícone de Logout -->
-    <div class="user-info">
-      <span *ngIf="isAuthenticated$ | async" >Olá, {{userName}}!</span>
-       <!-- Botão Entrar com GOV.BR -->
-       <button *ngIf="!(isAuthenticated$ | async) && isProfessional" class="btn gov-br-login" id="gov-br-login" (click)="signInGovBR()">
-        <!-- <span class="material-icons" style="color: white; height: 15px;">person</span> -->
+  <!-- Espaçador e Título-->
+  <span class="example-spacer"></span>
+
+  <div class="user-info">
+    <span *ngIf="isAuthenticated$ | async">Olá, {{userName}}!</span>
+
+    <ng-container *ngIf="!(isAuthenticated$ | async)">
+      <button *ngIf="isProfessional" class="btn gov-br-login" id="gov-br-login" (click)="signInGovBR()">
         Entrar com gov.br
       </button>
-      
-      <button *ngIf="!(isAuthenticated$ | async) && isCorporative" class="btn" id="logout-item" (click)="signIn()">Entrar</button>
-      <button *ngIf="isAuthenticated$ | async" class="btn" id="logout-item" (click)="signOut()">Sair</button>
-    </div>
 
-  </mat-toolbar>
-</div>
+      <button *ngIf="isCorporative" class="btn" id="logout-item" (click)="signIn()">Entrar</button>
+
+    </ng-container>
+
+    <button *ngIf="isAuthenticated$ | async" class="btn" id="logout-item" (click)="signOut()">Sair</button>
+  </div>
+</mat-toolbar>
