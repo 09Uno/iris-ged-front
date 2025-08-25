@@ -12,7 +12,8 @@
   margin-top: 0;
 }
 
-.search-column, .results-column {
+.search-column,
+.results-column {
   padding: 0 5px;
 }
 
@@ -406,6 +407,7 @@ select.form-control-sm {
 /* Lista de documentos customizada */
 .document-list-scroll {
   flex: 1;
+  max-height: calc(100vh - 250px);
   overflow-y: auto;
   padding-right: 5px;
   border: 1px solid #e9ecef;
@@ -470,56 +472,63 @@ select.form-control-sm {
 }
 
 @keyframes loading {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .main {
     padding: 5px 8px;
+     margin-bottom: 10px;
   }
-  
-  .search-column, .results-column {
+
+  .search-column,
+  .results-column {
     padding: 0 3px;
     margin-bottom: 15px;
   }
-  
+
   .form-body {
     padding: 6px 8px;
   }
-  
+
   .form-section-expanded {
     padding: 4px 8px;
   }
-  
+
   .form-actions-expanded {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .form-actions-expanded .btn {
     width: 100%;
   }
-  
+
   .section-title {
     font-size: 0.75rem;
   }
-  
+
   .form-control-expanded {
     font-size: 0.75rem;
   }
-  
+
   .form-check-container-expanded {
     flex-direction: row;
     flex-wrap: wrap;
   }
-  
+
   .results-column .form-section-expanded {
     height: auto;
     min-height: 300px;
   }
-  
+
   .document-list-scroll {
     flex: none;
     height: 250px;

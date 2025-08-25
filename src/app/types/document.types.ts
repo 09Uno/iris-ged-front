@@ -146,6 +146,18 @@ export interface SearchDocumentItem {
 }
 
 
+export interface DocumentType {
+  id: number;
+  name: string;
+  code: string;
+  category: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  prefix: string;
+}
+
+
 // Default configuration objects
 export const documentItem: DocumentItem = {
   Id: null,
@@ -190,3 +202,4 @@ export const htmlItemDocumentToEdit: HtmlItemDocumentToEdit = {
   processIdentifier: '',
   htmlContent: ''
 };
+

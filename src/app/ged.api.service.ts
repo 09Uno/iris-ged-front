@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { catchError, Observable, throwError, lastValueFrom } from 'rxjs';
-import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, NewDocumentDTO, AdvancedSearchRequest, AdvancedSearchResponse } from './types';
+import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, NewDocumentDTO, AdvancedSearchRequest, AdvancedSearchResponse, DocumentType } from './types';
 import { AuthService } from './services/authentication/auth.service';
 
 export const apiUrl = 'http://localhost/';
@@ -251,5 +251,16 @@ export default class GedApiService {
     }
   }
   
+  async getDocumentTypes(): Promise<Observable<DocumentType[]>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      return this.http.get<DocumentType[]>(`${apiUrl}v1/Document/GetDocumentsType`, { headers });
+    } catch (error) {
+      console.error('Error in getDocumentTypes:', error);
+      throw error;
+    }
+  }
+
 
 }

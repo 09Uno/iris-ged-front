@@ -6,7 +6,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ToolBarComponent } from '../../features/tool-bar.component/tool-bar.component';
 import GedApiService from '../../ged.api.service';
-import { NewDocumentDTO } from '../../types';
+import { NewDocumentDTO, DocumentType } from '../../types';
+import { DocumentService } from '../../services/documents/document.service';
 
 @Component({
   selector: 'app-insert-document',
@@ -58,14 +59,8 @@ export class InsertDocumentComponent implements OnInit {
   showSuccessModal = false;
 
   // Opções para os selects
-  tiposDocumento = [
-    { id: 1, nome: 'Ata' },
-    { id: 2, nome: 'Relatório' },
-    { id: 3, nome: 'Memorando' },
-    { id: 4, nome: 'Ofício' },
-    { id: 5, nome: 'Gravação - Plenária' },
-    { id: 6, nome: 'Gravação - Câmara Civil' }
-  ];
+  tiposDocumento : DocumentType[] = [];
+
 
   orgaosOrigem = [
     'Plenária',
@@ -77,13 +72,17 @@ export class InsertDocumentComponent implements OnInit {
   constructor(
     private titleService: Title,
     private gedApiService: GedApiService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private documentService: DocumentService
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.titleService.setTitle('Registrar Documentos');
     // Set default date to today
     this.formData.dataDocumento = new Date().toISOString().split('T')[0];
+
+    // Load document types
+    await this.loadDocumentTypes();
     
     console.log('InsertDocumentComponent ngOnInit:', {
       modal: this.modal,
@@ -112,6 +111,9 @@ export class InsertDocumentComponent implements OnInit {
         console.log('Route mode: Received existing protocol via data:', this.existingProtocol);
       }
     });
+
+    
+
   }
 
   onFileSelected(event: any) {
@@ -262,6 +264,27 @@ export class InsertDocumentComponent implements OnInit {
 
   getTipoNome(tipoId: number): string {
     const tipo = this.tiposDocumento.find(t => t.id === tipoId);
-    return tipo ? tipo.nome : '';
+    return tipo ? tipo.name : '';
+  }
+
+  async loadDocumentTypes() {
+    console.log('loadDocumentTypes called');
+    try {
+      console.log('Calling documentService.getDocumentsTypes()...');
+      const observable = await this.documentService.getDocumentsTypes();
+      console.log('Observable received, subscribing...');
+      observable.subscribe({
+        next: (types: DocumentType[]) => {
+          console.log('Document types received:', types);
+          this.tiposDocumento = types;
+          console.log('Document types loaded:', this.tiposDocumento);
+        },
+        error: (error) => {
+          console.error('Error loading document types:', error);
+        }
+      });
+    } catch (error) {
+      console.error('Error calling getDocumentsTypes:', error);
+    }
   }
 }

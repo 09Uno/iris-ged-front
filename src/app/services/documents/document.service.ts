@@ -1,4 +1,4 @@
-import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, AdvancedSearchRequest, AdvancedSearchResponse } from '../../types';
+import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, AdvancedSearchRequest, AdvancedSearchResponse, DocumentType } from '../../types';
 import { Injectable } from '@angular/core';
 import { catchError, lastValueFrom, Observable, of, tap } from 'rxjs';
 import { FileUtils } from '../../utils/FileUtils';
@@ -102,5 +102,16 @@ export class DocumentService {
       })
     );
   }
+
+  async getDocumentsTypes(): Promise<Observable<DocumentType[]>> {
+    return (await this.gedApi.getDocumentTypes()).pipe(
+      tap(() => console.log('Successfully fetched document types.')),
+      catchError((error) => {
+        console.error('Error fetching document types:', error);
+        return of([]);
+      })
+    );
+  }
+
 
 }
