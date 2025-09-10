@@ -24,8 +24,8 @@ export class DocumentSearchService {
     options: SearchOptions = {}
   ): Promise<Observable<AdvancedSearchResponse>> {
     const searchRequest: AdvancedSearchRequest = {
-      protocol: protocol,
-      searchType: 'protocol',
+      process: protocol,
+      searchType: 'documents',
       includeGenerated: options.incluirGerados ?? true,
       includeExternal: options.incluirExternos ?? true,
       page: options.page ?? 1,
@@ -86,6 +86,6 @@ export class DocumentSearchService {
     if (results.length === 0) return null;
     
     const firstResult = results[0];
-    return firstResult.protocolNumber || firstResult.generatedProtocol || null;
+    return firstResult.processIdentifier || firstResult.generatedProtocol || null;
   }
 }

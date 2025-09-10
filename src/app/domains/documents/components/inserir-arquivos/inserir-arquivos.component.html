@@ -1,0 +1,64 @@
+
+<app-tool-bar 
+[title]="title"
+[isProfessional]="isProfessional"
+[isCorporative]="isCorporative"
+></app-tool-bar>
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header bg-light">
+      <h5>Registrar Gravações</h5>
+    </div>
+    <div class="card-body">
+      <form>
+        <div class="row">
+          <!-- Tipo de Documento -->
+          <div class="col-md-12 mb-3">
+            <label for="tipoArquivo" class="form-label">Origem da Gravação</label>
+            <select id="tipoArquivo" class="form-select">
+              <option value="0" disabled selected>Selecione a origem da gravação..</option> 
+              <option value="mp4">Plenária</option>
+              <option value="pdf">Câmara de Civil</option>
+            </select>
+          </div>
+          
+          <!-- Identificador -->
+          <div class="col-md-12 mb-3">
+            <label for="identificador" class="form-label">Nome do Arquivo:</label>
+            <input type="text" id="identificador" class="form-control" placeholder="Ex: Reunião_Plenária">
+          </div>
+        </div>
+
+       
+
+        <div class="row">
+          <!-- Data Limite -->
+          <div class="col-md-12 mb-3">
+            <label for="dataLimite" class="form-label">Data do Evento:</label>
+            <div class="input-group">
+              <input type="date" id="dataLimite" class="form-control">
+            
+            </div>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <div class="mb-3">
+          <label for="descricao" class="form-label">Descrição:</label>
+          <textarea id="descricao" class="form-control" rows="3" placeholder="Descrição do documento (máx. 100 caracteres)"></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="arquivos" class="form-label">Arquivos:</label>
+          <input type="file" id="arquivos" class="form-control" multiple="multiple" placeholder="Selecione os Arquivos" accept=".mp3, .mp4">
+        </div>
+
+        <!-- Botões -->
+        <div class="d-flex justify-content-between mt-4">
+          <button type="submit" class="btn btn-primary">Enviar</button>
+          <button type="button" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

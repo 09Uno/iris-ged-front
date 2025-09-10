@@ -51,7 +51,9 @@ export interface NewDocumentDTO {
   observations?: string;
   keywords?: string;
   creatorUserId: number;
-  existingProtocol?: string;
+  DocumentNumber?: string;
+  useManualProtocol?: boolean;
+  manualProtocolNumber?: string;
 }
 
 export interface AdvancedSearchRequest {
@@ -70,7 +72,7 @@ export interface AdvancedSearchRequest {
   endDate?: string;
 
   // Protocol and Identifier Filters
-  protocol?: string;
+  process?: string; // Backend usa Process em vez de protocol
   uniqueIdentifier?: string;
 
   // Search Options
@@ -110,7 +112,7 @@ export interface AdvancedSearchResponse {
 export interface SearchDocumentItem {
   id: number;
   name: string;
-  protocolNumber?: string;
+  processIdentifier?: string;
   generatedProtocol?: string;
   uniqueIdentifier?: string;
   treeOrder: number;
@@ -134,7 +136,7 @@ export interface SearchDocumentItem {
   isPublic: boolean;
   isConfidential: boolean;
 
-  creatorUser: string;
+  author: string;
   createdAt: string;
   lastModifierUser?: string;
   lastModifiedAt: string;

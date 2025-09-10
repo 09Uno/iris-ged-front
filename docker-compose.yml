@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # MinIO Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: iris-ged-minio
+    ports:
+      - "9000:9000"    # API MinIO
+      - "9001:9001"    # Console Web MinIO
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_CONSOLE_ADDRESS: ":9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - iris-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MinIO Client para setup inicial (opcional)
+  minio-setup:
+    image: minio/mc:latest
+    container_name: iris-ged-minio-setup
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/ged-documents;
+      /usr/bin/mc mb myminio/ged-temp;
+      /usr/bin/mc policy set public myminio/ged-temp;
+      echo 'MinIO setup completed!';
+      "
+    networks:
+      - iris-network
+
+volumes:
+  minio_data:
+    driver: local
+
+networks:
+  iris-network:
+    driver: bridge

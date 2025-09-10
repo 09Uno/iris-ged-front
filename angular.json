@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/ged",
+            "outputPath": "dist/iris-ged-front",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [

@@ -1,0 +1,59 @@
+<div class="full-width-container">
+    <app-tool-bar [isHome]="true" [isCorporative]="isCorporative" [isProfessional]="isProfessional"></app-tool-bar>
+    <div class="iris-page-container" style="height: calc(100vh - 180px); display: flex; align-items: center; justify-content: center;">
+        <div class="iris-main-content" style="flex: none; width: auto; max-width: 500px;">
+            <div *ngIf="!isAuthenticated" class="iris-card" style="margin: 0; width: 100%;">
+                <div class="iris-card-header">
+                    <h6 class="iris-card-title">
+                        <span class="material-icons" style="font-size: 18px;">info</span>
+                        Você não está logado
+                    </h6>
+                </div>
+                <div class="iris-card-body">
+                    <div style="color: #6c757d; font-size: 0.9rem; line-height: 1.5;">
+                        <div *ngIf="isCorporative">
+                            Use o botão <strong>"Entrar"</strong> na parte superior direita para logar.
+                            Ao tentar acessar você será redirecionado automaticamente para a plataforma de login da Microsoft.
+                        </div>
+                        <div *ngIf="isProfessional">
+                            Use o botão <strong>"Entrar com gov.br"</strong> na parte superior direita para logar.
+                            Ao tentar acessar você será redirecionado automaticamente para a plataforma de login único do Gov BR.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="isAuthenticated" class="iris-card" style="margin: 0; width: 100%;">
+                <div style="text-align: center; padding: 20px 0;">
+                    <img [src]="home" alt="Processos" style="max-height: 300px; max-width: 100%; object-fit: contain; border-radius: 8px;">
+                </div>
+                <div class="iris-card-body">
+                    <h4 style="color: #094c8c; font-weight: 600; font-size: 1.5rem; margin-bottom: 12px; text-align: center;">IRIS GED</h4>
+                    <p *ngIf="isCorporative" style="color: #6c757d; font-size: 0.9rem; line-height: 1.6; text-align: justify; margin-bottom: 20px;">
+                        Sistema integrado de gestão documental que centraliza, organiza e controla todo o ciclo de vida dos
+                        documentos corporativos, assegurando eficiência e conformidade nos processos de digitalização,
+                        armazenamento e recuperação de informações.
+                    </p>
+                    <p *ngIf="isProfessional" style="color: #6c757d; font-size: 0.9rem; line-height: 1.6; text-align: center; margin-bottom: 20px;">
+                        Assine ARTs e Atestados das CATs através do GOVBR.
+                    </p>
+                    <div style="text-align: center;">
+                        <a *ngIf="isCorporative" href="/documentos" class="iris-btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="font-size: 18px;">folder_open</span>
+                            Acessar Sistema
+                        </a>
+                        <a *ngIf="isProfessional" href="/cat" class="iris-btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="font-size: 18px;">description</span>
+                            Gerar CAT
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background: linear-gradient(135deg, #094c8c 0%, #057db3 100%); color: white; text-align: center; padding: 16px; margin-top: auto; font-size: 0.8rem;">
+        © 2025 <strong>Coordenação de Tecnologia</strong> - Conselho Regional de Engenharia e Agronomia da Bahia.<br>
+        Todos os direitos reservados.
+    </footer>
+</div>

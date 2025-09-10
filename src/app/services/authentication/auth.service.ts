@@ -5,6 +5,7 @@ import { catchError, lastValueFrom, Observable, of, tap } from 'rxjs';
 import { AccountInfo } from '@azure/msal-browser'; // Importa AccountInfo
 import { Router } from '@angular/router';
 import GedApiService from '../../ged.api.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -20,14 +21,14 @@ export class AuthService {
     });
   }
 
-  apiUrl = 'https://localhost/';
+  apiUrl = environment.apiUrl;
 
   login() {
     const currentUrl = this.router.url;
     localStorage.setItem('redirectUrl', currentUrl);  
     const loginRequest = {
       // Usando o escopo personalizado configurado no Azure AD
-      scopes: ['api://a9d996f0-0460-4707-92f3-753372e57dbc/IRIS_GED_front_end'], // Substitua pelo seu escopo
+      scopes: environment.azure.scopes,
       state: currentUrl,
     };
     this.msalService.loginRedirect(loginRequest);
@@ -105,7 +106,7 @@ export class AuthService {
     return null;
   }
 
-  async getToken(scopes: string[] = ['api://a9d996f0-0460-4707-92f3-753372e57dbc/IRIS_GED_front_end']): Promise<string | null> {
+  async getToken(scopes: string[] = environment.azure.scopes): Promise<string | null> {
     try {
       // Solicita o token com o escopo personalizado
       const result = await this.msalService.instance.acquireTokenSilent({

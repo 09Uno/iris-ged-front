@@ -4,6 +4,7 @@ import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { environment } from '../environments/environment';
 
 // MSAL Imports
 import {
@@ -27,10 +28,9 @@ const isIE = window.navigator.userAgent.indexOf('MSIE ') > -1 || window.navigato
 export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-       clientId: 'a9d996f0-0460-4707-92f3-753372e57dbc', 
-      authority: 'https://login.microsoftonline.com/9476a667-1a5a-4cbd-8571-a0e5080b330d/discovery/v2.0/keys', 
-      // redirectUri: 'https://irisged.creaba.org.br'
-      redirectUri: 'http://localhost:4200', 
+       clientId: environment.azure.clientId, 
+      authority: environment.azure.authority, 
+      redirectUri: environment.azure.redirectUri, 
     },
     cache: {
       cacheLocation: BrowserCacheLocation.LocalStorage, // Usa LocalStorage para persistir tokens

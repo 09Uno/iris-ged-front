@@ -1,0 +1,163 @@
+<app-tool-bar [isHome]="true" [isCorporative]="isCorporative"></app-tool-bar>
+
+<div class="iris-page-container">
+  <div class="iris-main-content">
+    <div class="iris-row">
+      <div class="iris-col-12" style="max-width: 800px; margin: 0 auto;">
+        <div class="iris-card">
+          <div class="iris-card-header">
+            <h6 class="iris-card-title">
+              <span class="material-icons" style="font-size: 18px;">search</span>
+              Busca de Documentos
+            </h6>
+          </div>
+          <div class="iris-card-body">
+          <form [formGroup]="searchForm" (ngSubmit)="search()">
+            
+            <div class="iris-section">
+              <div class="iris-section-header">
+                <h6 style="color: #094c8c; font-weight: 600; font-size: 0.85rem; margin: 0;">Critérios de Busca</h6>
+              </div>
+              <div class="iris-section-content">
+              
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label class="form-label-expanded">Pesquisar em:</label>
+                  <div class="form-check-container-expanded">
+                    <div *ngFor="let scope of searchScopes" class="form-check">
+                      <input class="form-check-input" type="checkbox" [value]="scope.value"
+                          formControlName="searchScopes">
+                      <label class="form-check-label">
+                          {{ scope.label }}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label class="form-label-expanded">Texto para Pesquisa</label>
+                  <input type="text" class="iris-input" formControlName="searchText"
+                      placeholder="Digite o texto para pesquisa">
+                </div>
+              </div>
+              </div>
+            </div>
+
+            <div class="iris-section">
+              <div class="iris-section-header">
+                <h6 style="color: #094c8c; font-weight: 600; font-size: 0.85rem; margin: 0;">Filtros Específicos</h6>
+              </div>
+              <div class="iris-section-content">
+              
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label-expanded">Órgão Gerador</label>
+                  <select class="iris-input" formControlName="orgaoGerador">
+                    <option value="">Selecione</option>
+                    <!-- Opções dinâmicas viriam do backend -->
+                  </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label-expanded">Unidade Gerada</label>
+                  <select class="iris-input" formControlName="unidadeGerada">
+                    <option value="">Selecione</option>
+                    <!-- Opções dinâmicas viriam do backend -->
+                  </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label-expanded">Assunto</label>
+                  <input type="text" class="iris-input" formControlName="assunto">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label class="form-label-expanded">Incluir nos resultados:</label>
+                  <div class="form-check-container-expanded">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" formControlName="interessado">
+                      <label class="form-check-label">Interessado</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" formControlName="remetente">
+                      <label class="form-check-label">Remetente</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" formControlName="destinatario">
+                      <label class="form-check-label">Destinatário</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+
+            <!-- Botões -->
+            <div style="display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end;">
+              <button type="button" class="iris-btn-secondary" (click)="clearSearch()">
+                <span class="material-icons" style="font-size: 16px; margin-right: 4px;">clear</span> Limpar
+              </button>
+              <button type="submit" class="iris-btn-primary">
+                <span class="material-icons" style="font-size: 16px; margin-right: 4px;">search</span> Pesquisar
+              </button>
+            </div>
+          </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultados da Pesquisa -->
+    <div class="iris-row" *ngIf="documentResults.length">
+      <div class="iris-col-12" style="max-width: 1000px; margin: 0 auto;">
+        <div class="iris-card">
+          <div class="iris-card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <h6 class="iris-card-title" style="margin-bottom: 0;">
+                <span class="material-icons" style="font-size: 18px;">description</span>
+                Resultados da Pesquisa
+              </h6>
+              <span style="background: linear-gradient(135deg, #ba9705 0%, #d4a706 100%); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">{{ documentResults.length }} resultados</span>
+            </div>
+          </div>
+          <div class="iris-card-body">
+            <div class="iris-section">
+              <div class="iris-section-content iris-scrollable">
+                <div style="overflow-x: auto;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead>
+                      <tr style="background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%); border-bottom: 2px solid #094c8c;">
+                        <th style="padding: 12px; text-align: left; color: #094c8c; font-weight: 600; font-size: 0.8rem;">Número SEI</th>
+                        <th style="padding: 12px; text-align: left; color: #094c8c; font-weight: 600; font-size: 0.8rem;">Descrição</th>
+                        <th style="padding: 12px; text-align: left; color: #094c8c; font-weight: 600; font-size: 0.8rem;">Usuário</th>
+                        <th style="padding: 12px; text-align: left; color: #094c8c; font-weight: 600; font-size: 0.8rem;">Data</th>
+                        <th style="padding: 12px; text-align: center; color: #094c8c; font-weight: 600; font-size: 0.8rem;">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let doc of documentResults" style="border-bottom: 1px solid rgba(9, 76, 140, 0.1); transition: background-color 0.2s ease;" onmouseenter="this.style.backgroundColor='rgba(9, 76, 140, 0.05)'" onmouseleave="this.style.backgroundColor=''">
+                        <td style="padding: 12px; color: #495057;">{{ doc.contractNumber }}</td>
+                        <td style="padding: 12px; color: #495057;">{{ doc.description }}</td>
+                        <td style="padding: 12px; color: #495057;">{{ doc.user }}</td>
+                        <td style="padding: 12px; color: #495057;">{{ doc.date | date:'dd/MM/yyyy' }}</td>
+                        <td style="padding: 12px; text-align: center;">
+                          <button class="iris-btn-primary" (click)="viewDocumentDetails(doc)" style="padding: 0.3rem 0.8rem; font-size: 0.75rem;">
+                            <span class="material-icons" style="font-size: 14px; margin-right: 4px;">visibility</span> Ver
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

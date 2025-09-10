@@ -15,7 +15,7 @@ import { mapToHtmlItemDocumentToEdit } from './editor.config';
 import { lastValueFrom } from 'rxjs';
 import Quill from 'quill';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { defaultUiControllers } from '../../shared/corporative/document-manager/document-manager-core/document-manager.config';
+import { defaultUiControllers } from '../../domains/documents/components/document-manager/document-manager-core/document-manager.config';
 
 @Component({
   selector: 'app-editor-html',

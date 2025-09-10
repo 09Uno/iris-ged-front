@@ -47,13 +47,21 @@ a{
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #004aad;
+  background: linear-gradient(135deg, #094c8c 0%, #057db3 100%);
   color: white;
   border: none;
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 14px;
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(9, 76, 140, 0.3);
+  &:hover {
+    background: linear-gradient(135deg, #057db3 0%, #094c8c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(9, 76, 140, 0.4);
+  }
 }
 
 .gov-br-logo {
@@ -101,12 +109,15 @@ a{
   }
 
   .main {
-    height: 55px !important;
-    background-color: #ffffff !important;
+    height: 50px !important; /* Altura mais compacta */
+    background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%) !important;
     justify-content: center;
     color: #000000;
-    margin-bottom: 20px;
-    padding: .5rem 1rem !important;
+    margin-bottom: 0; /* Remove margin para melhor integração */
+    padding: .4rem 1rem !important;
+    border-radius: 0 0 6px 6px; /* Borda arredondada inferior */
+    box-shadow: 0 2px 8px rgba(9, 76, 140, 0.1); /* Sombra consistente */
+    border-left: 3px solid #ba9705; /* Borda lateral dourada */
   }
 }
 
@@ -156,15 +167,16 @@ a{
 /* Barra Superior */
 .top-bar {
   display: flex;
-  background-color: #094c8c;
+  background: linear-gradient(135deg, #094c8c 0%, #057db3 100%);
   padding: 0.5vw 0.5vw;
   align-items: center;
   justify-content: center;
   height: 10vw;
-  max-height: 80px;
-  top: 0; /* Garante que a barra superior fique no topo da janela */
-  width: 100%; /* Faz a barra superior ocupar toda a largura da janela */
-  border-bottom: #ba9705 5px solid;
+  max-height: 70px; /* Altura mais compacta */
+  top: 0;
+  width: 100%;
+  border-bottom: 3px solid #ba9705;
+  box-shadow: 0 2px 8px rgba(9, 76, 140, 0.2); /* Sombra consistente */
 }
 
 .top-bar-logo {
@@ -247,6 +259,28 @@ a{
   line-height: 1.5;
 }
 
+.material-icons-small {
+  font-size: 16px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: #495057;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  margin: 2px 4px;
+  &:hover {
+    background: linear-gradient(135deg, rgba(9, 76, 140, 0.1) 0%, rgba(5, 125, 179, 0.1) 100%);
+    color: #094c8c;
+    transform: translateX(2px);
+  }
+}
+
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   overflow-x: hidden;
@@ -267,15 +301,22 @@ body {
   height: 80px;
 }
 .nav-link {
-  color: #444;
-  transition: color 0.3s ease;
+  color: #495057;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
 }
 .nav-link:hover {
-  color: #00509b;
+  color: #094c8c;
+  background-color: rgba(9, 76, 140, 0.05);
+  transform: translateY(-1px);
 }
 .nav-link.active {
-  color: #00509b;
-  font-weight: bold;
+  color: #094c8c;
+  font-weight: 600;
+  background-color: rgba(9, 76, 140, 0.1);
 }
 .sidebar {
   position: fixed;
@@ -298,20 +339,26 @@ body {
   margin-right: 26px;
   span {
     margin: 0;
-    font-size: 16px;
-    color: #000000;
-    font-weight: lighter;
+    font-size: 0.9rem;
+    color: #495057;
+    font-weight: 500;
   }
 }
 
 #logout-item {
-  padding: 6px 12px;
-  color: #000000;
-  background-color: #f0ad4e;
+  padding: 6px 16px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ba9705 0%, #d4a706 100%);
   border: none;
   border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(186, 151, 5, 0.3);
   &:hover {
-    background-color: #f3a941;
+    background: linear-gradient(135deg, #d4a706 0%, #ba9705 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(186, 151, 5, 0.4);
   }
 }
 .menu-items {
@@ -344,10 +391,10 @@ body {
         margin: 0;
         padding: 0.5rem 0;
         list-style: none;
-        background-color: #fff;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+        border: 1px solid rgba(9, 76, 140, 0.2);
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(9, 76, 140, 0.15);
 
         li {
           padding: 0;
@@ -360,8 +407,9 @@ body {
             text-decoration: none;
 
             &:hover {
-              background-color: #00509b;
-              color: #f0f0f0;
+              background: linear-gradient(135deg, #094c8c 0%, #057db3 100%);
+              color: #ffffff;
+              transform: translateX(2px);
             }
           }
         }

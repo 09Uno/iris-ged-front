@@ -85,7 +85,7 @@ export class JsTreeUtil {
     const mappedData = [
       {
         id: "root_process",
-        text: `Protocolo ${processIdentifier}`,
+        text: `Processo ${processIdentifier}`,
         state: { opened: true },
         children: documents.map(doc => {
           console.log('Mapeando documento:', doc);
