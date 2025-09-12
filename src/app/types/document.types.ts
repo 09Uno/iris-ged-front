@@ -1,3 +1,5 @@
+import { Permission, Role, User } from "./base.types";
+
 export interface DocumentItem {
   Id: number | null;
   FileName: string;

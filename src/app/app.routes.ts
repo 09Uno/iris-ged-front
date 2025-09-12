@@ -29,6 +29,14 @@ export const routes: Routes = [
       import('./domains/auth/auth.module').then(m => m.AuthModule)
   },
 
+  // Admin Domain - lazy loading
+  {
+    path: '',
+    loadChildren: () =>
+      import('./domains/admin/admin.module').then(m => m.AdminModule),
+    canActivate: [MsalGuard]
+  },
+
   // Editor independente (não está em módulo de domínio)
   { path: 'edit-document', component: EditorHtmlComponent }
 ];

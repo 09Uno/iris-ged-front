@@ -1,0 +1,157 @@
+<!-- admin-dashboard.component.html -->
+<app-tool-bar [title]="viewController.title" [isProfessional]="isProfessional" [isCorporative]="isCorporative">
+</app-tool-bar>
+
+<div class="container-fluid main page-content">
+  <div class="row main-content">
+    <!-- Painel Principal de Administração -->
+    <div class="col-12">
+      <div class="card form-card">
+        <div class="card-body form-body">
+          
+          <!-- Messages -->
+          <div *ngIf="messages.errorMessage" class="alert alert-danger message-sm">
+            <div [innerHTML]="messages.errorMessage"></div>
+          </div>
+          <div *ngIf="messages.alertMessage" class="alert alert-warning message-sm">
+            <div [innerHTML]="messages.alertMessage"></div>
+          </div>
+          <div *ngIf="messages.successMessage" class="alert alert-success message-sm">
+            <div [innerHTML]="messages.successMessage"></div>
+          </div>
+
+          <!-- Seção de Configurações Gerais -->
+          <div class="form-section-expanded">
+            <h6 class="section-title">Configurações Gerais do Sistema</h6>
+            
+            <div class="admin-cards-container">
+              
+              <!-- Card Tipos de Documentos -->
+              <div class="admin-card" (click)="openAddDocumentTypeModal()">
+                <div class="admin-card-icon">
+                  <span class="material-icons">description</span>
+                </div>
+                <div class="admin-card-content">
+                  <h6 class="admin-card-title">Tipos de Documentos</h6>
+                  <p class="admin-card-description">
+                    Gerenciar tipos de documentos disponíveis no sistema GED
+                  </p>
+                </div>
+                <div class="admin-card-action">
+                  <span class="material-icons">arrow_forward</span>
+                </div>
+              </div>
+
+              <!-- Card Configurações de Usuários -->
+              <div class="admin-card" (click)="openUserManagement()">
+                <div class="admin-card-icon">
+                  <span class="material-icons">people</span>
+                </div>
+                <div class="admin-card-content">
+                  <h6 class="admin-card-title">Usuários e Permissões</h6>
+                  <p class="admin-card-description">
+                    Gerenciar usuários e definir permissões específicas
+                  </p>
+                </div>
+                <div class="admin-card-action">
+                  <span class="material-icons">arrow_forward</span>
+                </div>
+              </div>
+
+              <!-- Card Configurações do Sistema -->
+              <div class="admin-card disabled">
+                <div class="admin-card-icon">
+                  <span class="material-icons">settings</span>
+                </div>
+                <div class="admin-card-content">
+                  <h6 class="admin-card-title">Configurações</h6>
+                  <p class="admin-card-description">
+                    Configurações gerais do sistema (Em desenvolvimento)
+                  </p>
+                </div>
+                <div class="admin-card-action">
+                  <span class="material-icons">lock</span>
+                </div>
+              </div>
+
+              <!-- Card Logs e Auditoria -->
+              <div class="admin-card disabled">
+                <div class="admin-card-icon">
+                  <span class="material-icons">history</span>
+                </div>
+                <div class="admin-card-content">
+                  <h6 class="admin-card-title">Logs e Auditoria</h6>
+                  <p class="admin-card-description">
+                    Visualizar logs e auditoria do sistema (Em desenvolvimento)
+                  </p>
+                </div>
+                <div class="admin-card-action">
+                  <span class="material-icons">lock</span>
+                </div>
+              </div>
+
+              <!-- Card Relatórios -->
+              <div class="admin-card disabled">
+                <div class="admin-card-icon">
+                  <span class="material-icons">assessment</span>
+                </div>
+                <div class="admin-card-content">
+                  <h6 class="admin-card-title">Relatórios</h6>
+                  <p class="admin-card-description">
+                    Gerar relatórios do sistema (Em desenvolvimento)
+                  </p>
+                </div>
+                <div class="admin-card-action">
+                  <span class="material-icons">lock</span>
+                </div>
+              </div>
+
+              <!-- Card Backup -->
+              <div class="admin-card disabled">
+                <div class="admin-card-icon">
+                  <span class="material-icons">backup</span>
+                </div>
+                <div class="admin-card-content">
+                  <h6 class="admin-card-title">Backup</h6>
+                  <p class="admin-card-description">
+                    Configurar e gerenciar backups (Em desenvolvimento)
+                  </p>
+                </div>
+                <div class="admin-card-action">
+                  <span class="material-icons">lock</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Informações do Sistema -->
+          <div class="form-section-expanded mt-4">
+            <h6 class="section-title">Informações do Sistema</h6>
+            
+            <div class="info-panel-expanded">
+              <div class="info-icon">
+                <span class="material-icons">info</span>
+              </div>
+              <div class="info-content">
+                <div class="row">
+                  <div class="col-md-6">
+                    <strong>Versão do Sistema:</strong> 1.0.0-alpha<br>
+                    <strong>Ambiente:</strong> Desenvolvimento<br>
+                    <strong>Última Atualização:</strong> {{ today | date:'dd/MM/yyyy HH:mm' }}
+                  </div>
+                  <div class="col-md-6">
+                    <strong>Total de Documentos:</strong> -<br>
+                    <strong>Usuários Ativos:</strong> -<br>
+                    <strong>Espaço Utilizado:</strong> -
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

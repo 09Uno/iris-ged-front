@@ -1,0 +1,143 @@
+<!-- add-document-type-modal.component.html -->
+<div class="modal-header">
+  <h4 class="modal-title">
+    <span class="material-icons">description</span>
+    Adicionar Tipo de Documento
+  </h4>
+  <button type="button" class="btn-close" (click)="onCancel()" [disabled]="isLoading">
+    <span class="material-icons">close</span>
+  </button>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="documentTypeForm" (ngSubmit)="onSubmit()">
+    
+    <!-- Nome do Tipo -->
+    <div class="form-section-expanded">
+      <div class="mb-3">
+        <label for="name" class="form-label-expanded required">Nome do Tipo:</label>
+        <input 
+          type="text" 
+          class="form-control form-control-expanded"
+          [class.is-invalid]="hasFieldError('name')"
+          id="name"
+          formControlName="name"
+          placeholder="Ex: Ofício, Memorando, Relatório..."
+          [disabled]="isLoading">
+        <div class="invalid-feedback" *ngIf="hasFieldError('name')">
+          {{ getFieldError('name') }}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="code" class="form-label-expanded required">Código:</label>
+        <input 
+          type="text" 
+          class="form-control form-control-expanded"
+          [class.is-invalid]="hasFieldError('code')"
+          id="code"
+          formControlName="code"
+          placeholder="Ex: OF, MEM, REL..."
+          [disabled]="isLoading">
+        <div class="invalid-feedback" *ngIf="hasFieldError('code')">
+          {{ getFieldError('code') }}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="prefix" class="form-label-expanded required">Prefixo:</label>
+        <input 
+          type="text" 
+          class="form-control form-control-expanded"
+          [class.is-invalid]="hasFieldError('prefix')"
+          id="prefix"
+          formControlName="prefix"
+          placeholder="Ex: DOC, OF, MEM..."
+          [disabled]="isLoading">
+        <div class="invalid-feedback" *ngIf="hasFieldError('prefix')">
+          {{ getFieldError('prefix') }}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Categoria -->
+    <div class="form-section-expanded">
+      <h6 class="section-title">Categorização</h6>
+      
+      <div class="mb-3">
+        <label for="category" class="form-label-expanded required">Categoria:</label>
+        <select 
+          class="form-control form-control-expanded"
+          [class.is-invalid]="hasFieldError('category')"
+          id="category"
+          formControlName="category"
+          [disabled]="isLoading">
+          <option value="">Selecione uma categoria</option>
+          <option [value]="cat.value" *ngFor="let cat of categories">{{ cat.label }}</option>
+        </select>
+        <div class="invalid-feedback" *ngIf="hasFieldError('category')">
+          {{ getFieldError('category') }}
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Status -->
+    <div class="form-section-expanded">
+      <div class="form-check">
+        <input 
+          class="form-check-input" 
+          type="checkbox" 
+          id="isActive"
+          formControlName="isActive"
+          [disabled]="isLoading">
+        <label class="form-check-label" for="isActive">
+          <strong>Tipo ativo no sistema</strong>
+          <small class="d-block text-muted">
+            Desmarque se o tipo não deve estar disponível para novos documentos
+          </small>
+        </label>
+      </div>
+    </div>
+
+    <!-- Informações adicionais -->
+    <div class="info-panel-expanded">
+      <div class="info-icon">
+        <span class="material-icons">info</span>
+      </div>
+      <div class="info-content">
+        <strong>Importante:</strong> Após criar o tipo de documento, ele estará disponível para 
+        seleção ao inserir novos documentos no sistema. Os campos marcados como obrigatórios 
+        deverão ser preenchidos durante o processo de inserção.
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button 
+    type="button" 
+    class="btn btn-secondary" 
+    (click)="onCancel()"
+    [disabled]="isLoading">
+    Cancelar
+  </button>
+  <button 
+    type="button" 
+    class="btn btn-primary" 
+    (click)="onSubmit()"
+    [disabled]="isLoading || !documentTypeForm.valid">
+    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+    <span *ngIf="!isLoading">Adicionar Tipo</span>
+    <span *ngIf="isLoading">Adicionando...</span>
+  </button>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" *ngIf="isLoading">
+  <div class="progress-bar-loading">
+    <div class="progress-bar-loading-value"></div>
+  </div>
+</div>

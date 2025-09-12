@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { catchError, Observable, throwError, lastValueFrom } from 'rxjs';
-import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, NewDocumentDTO, AdvancedSearchRequest, AdvancedSearchResponse, DocumentType } from './types';
+import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, NewDocumentDTO, AdvancedSearchRequest, AdvancedSearchResponse, DocumentType, GetDefaultRolesResponse, GetDefaultPermissionsResponse } from './types';
 import { AuthService } from './services/authentication/auth.service';
 import { environment } from '../environments/environment';
 
@@ -25,7 +25,7 @@ export default class GedApiService {
     formData.append('FileContent', item.FileContent);
     formData.append('Description', item.Description);
     formData.append('FileExtension', item.FileExtension);
-    
+
     try {
       const token = await this.authService.getToken();
 
@@ -47,7 +47,7 @@ export default class GedApiService {
 
   // Método para salvar documento HTML
   async saveHtmlDocument(item: HtmlDocumentItem): Promise<Observable<any>> {
-        
+
     const formData = new FormData();
 
     formData.append('FileName', item.FileName);
@@ -74,12 +74,12 @@ export default class GedApiService {
     try {
       const token = await this.authService.getToken();
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-      
-      const response  =  this.http.get(`${environment.apiUrl}v1/Document/DownloadDocumetAsPdf?documentId=${documentId}`, {
+
+      const response = this.http.get(`${environment.apiUrl}v1/Document/DownloadDocumetAsPdf?documentId=${documentId}`, {
         headers,
         responseType: 'blob' as 'json'
       });
-  
+
       return response as Observable<Blob>; // Retorna o Blob
     } catch (error) {
       console.error('Erro ao baixar o documento:', error);
@@ -111,7 +111,7 @@ export default class GedApiService {
   // Método para buscar documentos por identificador de processo
   async fetchDocumentsByProcess(identifier: string): Promise<Observable<DocumentItem[]>> {
     const token = await this.authService.getToken();
-    
+
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     const encodedString = encodeURIComponent(identifier);
     return this.http.get<DocumentItem[]>(`${environment.apiUrl}v1/Document/getDocs?processIdentifier=${encodedString}`, { headers });
@@ -133,15 +133,15 @@ export default class GedApiService {
   checkAuthentication(): any {
     try {
       const token = this.authService.getGovBrToken();
-  
+
       if (!token) {
         console.error('Token inválido ou ausente.');
         throw new Error('Token inválido ou ausente.');
       }
-  
-  
+
+
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  
+
       // Certifique-se de que o URL da API está correto
       return this.http.get(`${environment.apiUrl}v1/Auth/ValidateToken`, { headers }).subscribe({
         next: (response: any) => {
@@ -151,19 +151,20 @@ export default class GedApiService {
         error: (error: any) => {
           console.error('Erro na requisição:', error);
           throw error;
-        }});
+        }
+      });
     } catch (error) {
       console.error('Erro ao tentar autorizar:', error);
       throw error;
     }
   }
 
-  logoutGovBr(){
+  logoutGovBr() {
     try {
       const token = this.authService.getGovBrToken();
-     
+
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  
+
       // Certifique-se de que o URL da API está correto
       return this.http.get(`${environment.apiUrl}v1/Auth/LogOutGovBr?token=${token}`, { headers }).subscribe({
         next: (response: any) => {
@@ -173,7 +174,8 @@ export default class GedApiService {
         error: (error: any) => {
           console.error('Erro na requisição:', error);
           throw error;
-        }});
+        }
+      });
     } catch (error) {
       console.error('Erro ao tentar fazer logout:', error);
       throw error;
@@ -185,9 +187,9 @@ export default class GedApiService {
   // Método para salvar um novo documento usando NewDocumentDTO
   async saveNewDocument(document: NewDocumentDTO): Promise<Observable<any>> {
     console.log('DEBUG API: Recebido DocumentNumber:', document.DocumentNumber);
-    
+
     const formData = new FormData();
-    
+
     // Map DTO properties to FormData (matching backend CreateDocumentDto)
     formData.append('Name', document.name);
     formData.append('DocumentDate', document.documentDate);
@@ -213,7 +215,7 @@ export default class GedApiService {
       formData.append('UseManualProtocol', document.useManualProtocol.toString());
       console.log('DEBUG API: UseManualProtocol adicionado ao FormData:', document.useManualProtocol);
     }
-    
+
     if (document.manualProtocolNumber) {
       formData.append('ManualProtocolNumber', document.manualProtocolNumber);
       console.log('DEBUG API: ManualProtocolNumber adicionado ao FormData:', document.manualProtocolNumber);
@@ -225,9 +227,9 @@ export default class GedApiService {
       const token = await this.authService.getToken();
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-      return this.http.post<any>(`${environment.apiUrl}v1/Document/SaveDocument `, formData, { 
-        headers, 
-        observe: 'response' 
+      return this.http.post<any>(`${environment.apiUrl}v1/Document/SaveDocument `, formData, {
+        headers,
+        observe: 'response'
       }).pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error in saveNewDocument request:', error);
@@ -244,7 +246,6 @@ export default class GedApiService {
   // #endregion
 
   // #region Advanced Search Operations
-  // Método para busca avançada de documentos
   async advancedSearch(searchRequest: AdvancedSearchRequest): Promise<Observable<AdvancedSearchResponse>> {
     try {
       const token = await this.authService.getToken();
@@ -253,8 +254,8 @@ export default class GedApiService {
         'Content-Type': 'application/json'
       });
 
-      return this.http.post<AdvancedSearchResponse>(`${environment.apiUrl}v1/Document/AdvancedSearch`, searchRequest, { 
-        headers 
+      return this.http.post<AdvancedSearchResponse>(`${environment.apiUrl}v1/Document/AdvancedSearch`, searchRequest, {
+        headers
       }).pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Error in advancedSearch request:', error);
@@ -281,6 +282,75 @@ export default class GedApiService {
       throw error;
     }
   }
+
+  async addDocumentType(documentType: DocumentType): Promise<Observable<any>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
+      return this.http.post<any>(`${environment.apiUrl}v1/Document/AddDocumentType`, documentType, { headers }).pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error in addDocumentType request:', error);
+          console.error('Status:', error.status);
+          console.error('Message:', error.message);
+          return throwError(error);
+        })
+      );
+    } catch (error) {
+      console.error('Error in addDocumentType:', error);
+      throw error;
+    }
+  }
+
   // #endregion
 
+  //#region User Management Operations
+  // Métodos relacionados à gestão de usuários 
+
+  //Buscar as roles disponíveis
+  async GetDefaultRoles(): Promise<Observable<GetDefaultRolesResponse[]>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      return this.http.get<GetDefaultRolesResponse[]>(`${environment.apiUrl}v1/Permission/roles`, { headers });
+    } catch (error) {
+      console.error('Error in getDocumentTypes:', error);
+      throw error;
+    }
+  }
+
+  //Buscar as permissões do sistema
+  async GetAllPermissions(): Promise<Observable<GetDefaultPermissionsResponse[]>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      return this.http.get<GetDefaultPermissionsResponse[]>(`${environment.apiUrl}v1/Permission/permissions`, { headers });
+    } catch (error) {
+      console.error('Error in getAllPermissions:', error);
+      throw error;
+    }
+  }
+
+  async GetUserPermissions(): Promise<Observable<string[]>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      return this.http.get<string[]>(`${environment.apiUrl}v1/Permission/user-permissions`, { headers });
+    } catch (error) {
+      console.error('Error in getUserPermissions:', error);
+      throw error;
+    }
+  }
+
+    //update user  permissions
+
+    //update roles
+
+    //update user
+
+    //create user
+
+  //#endregion
 }

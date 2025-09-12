@@ -1,0 +1,269 @@
+<!-- user-permissions-modal.component.html -->
+<div class="modal-header">
+  <h4 class="modal-title">
+    <span class="material-icons">person_add</span>
+    {{ isEditMode ? 'Gerenciar Permissões do Usuário' : 'Criar Usuário com Permissões' }}
+  </h4>
+  <button type="button" class="btn-close" (click)="onCancel()" [disabled]="isLoading">
+    <span class="material-icons">close</span>
+  </button>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="userPermissionsForm" (ngSubmit)="onSubmit()">
+    
+    <!-- Dados do Usuário -->
+    <div class="form-section-expanded">
+      <h6 class="section-title">Dados do Usuário</h6>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="name" class="form-label-expanded required">Nome:</label>
+            <input 
+              type="text" 
+              class="form-control form-control-expanded"
+              [class.is-invalid]="hasFieldError('name')"
+              id="name"
+              formControlName="name"
+              placeholder="Nome completo do usuário"
+              [disabled]="isLoading">
+            <div class="invalid-feedback" *ngIf="hasFieldError('name')">
+              {{ getFieldError('name') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="email" class="form-label-expanded required">Email:</label>
+            <input 
+              type="email" 
+              class="form-control form-control-expanded"
+              [class.is-invalid]="hasFieldError('email')"
+              id="email"
+              formControlName="email"
+              placeholder="email@exemplo.com"
+              [disabled]="isLoading">
+            <div class="invalid-feedback" *ngIf="hasFieldError('email')">
+              {{ getFieldError('email') }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuração de Permissões -->
+    <div class="form-section-expanded">
+      <h6 class="section-title">Configuração de Permissões</h6>
+      
+      <div class="permission-config-info">
+        <div class="alert alert-info message-sm">
+          <span class="material-icons">info</span>
+          <strong>Escolha uma das opções:</strong> Defina uma role padrão OU selecione permissões específicas.
+          As duas opções são mutuamente exclusivas.
+        </div>
+      </div>
+
+      <!-- Roles Pré-definidas -->
+      <div class="mb-4">
+        <label class="form-label-expanded">Role (Função Pré-definida):</label>
+        <div class="role-selection">
+          <select 
+            class="form-control form-control-expanded"
+            formControlName="roleId"
+            (change)="onRoleChange()"
+            [disabled]="isLoading">
+            <option value="">Selecione uma role (opcional)</option>
+            <option [value]="role.id" *ngFor="let role of availableRoles">
+              {{ role.name }} - {{ role.description }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider-or">
+        <span>OU</span>
+      </div>
+
+      <!-- Permissões Específicas -->
+      <div class="mb-3">
+        <label class="form-label-expanded">Permissões Específicas:</label>
+        
+        <!-- Campo de Pesquisa -->
+        <div class="search-permission-section">
+          <label for="searchTerm" class="form-label-expanded">Pesquisar Permissões:</label>
+          <div class="search-input-container">
+            <input 
+              type="text" 
+              class="form-control form-control-expanded search-input"
+              id="searchTerm"
+              formControlName="searchTerm"
+              #searchInput
+              (input)="onSearchChange(searchInput.value)"
+              placeholder="Digite para pesquisar por nome, módulo, ação..."
+              [disabled]="isLoading">
+            <button 
+              type="button" 
+              class="btn btn-clear-search"
+              (click)="clearSearch()"
+              *ngIf="searchTerm"
+              [disabled]="isLoading"
+              title="Limpar pesquisa">
+              <span class="material-icons">clear</span>
+            </button>
+            <span class="search-icon material-icons">search</span>
+          </div>
+          
+          <!-- Indicador de resultados -->
+          <div class="search-results-info" *ngIf="searchTerm">
+            <span class="material-icons">info</span>
+            <span *ngIf="availablePermissionsToAdd.length > 0">
+              {{ availablePermissionsToAdd.length }} permiss{{ availablePermissionsToAdd.length === 1 ? 'ão encontrada' : 'ões encontradas' }} para "{{ searchTerm }}"
+            </span>
+            <span *ngIf="availablePermissionsToAdd.length === 0" class="no-results">
+              Nenhuma permissão encontrada para "{{ searchTerm }}"
+            </span>
+          </div>
+        </div>
+        
+        <!-- Seleção de Nova Permissão -->
+        <div class="add-permission-section">
+          <div class="row align-items-end">
+            <div class="col-md-8">
+              <label for="selectedPermissionToAdd" class="form-label-expanded">
+                {{ searchTerm ? 'Resultados da Pesquisa:' : 'Adicionar Permissão:' }}
+                <span class="available-count">({{ availablePermissionsToAdd.length }} disponíveis)</span>
+              </label>
+              <select 
+                class="form-control form-control-expanded"
+                id="selectedPermissionToAdd"
+                formControlName="selectedPermissionToAdd"
+                [disabled]="isLoading || availablePermissionsToAdd.length === 0">
+                <option value="">
+                  {{ availablePermissionsToAdd.length === 0 ? 
+                     (searchTerm ? 'Nenhum resultado encontrado' : 'Todas as permissões já foram adicionadas') : 
+                     'Selecione uma permissão para adicionar' }}
+                </option>
+                <option [value]="permission.id" *ngFor="let permission of availablePermissionsToAdd" 
+                        [innerHTML]="highlightSearchTerm(getPermissionDisplayName(permission))">
+                </option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <button 
+                type="button" 
+                class="btn btn-outline-primary w-100"
+                (click)="addPermission()"
+                [disabled]="isLoading || !userPermissionsForm.get('selectedPermissionToAdd')?.value">
+                <span class="material-icons">add</span>
+                Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de Permissões Selecionadas -->
+        <div class="selected-permissions-container" *ngIf="selectedPermissions.length > 0">
+          <h6 class="selected-permissions-title">
+            <span class="material-icons">check_circle</span>
+            Permissões Selecionadas ({{ selectedPermissions.length }})
+          </h6>
+          
+          <div class="selected-permissions-list">
+            <div *ngFor="let permission of selectedPermissions; trackBy: trackByPermissionId" 
+                 class="selected-permission-item">
+              <div class="permission-info">
+                <div class="permission-module-badge">
+                  <span class="material-icons">{{ getModuleIcon(permission.module) }}</span>
+                  {{ getModuleDisplayName(permission.module) }}
+                </div>
+                <div class="permission-details">
+                  <strong>{{ permission.name }}</strong>
+                  <small class="d-block text-muted" *ngIf="permission.description">
+                    {{ permission.description }}
+                  </small>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                class="btn btn-outline-danger btn-sm"
+                (click)="removePermission(permission.id)"
+                [disabled]="isLoading"
+                title="Remover permissão">
+                <span class="material-icons">remove</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensagem quando não há permissões -->
+        <div class="no-permissions-message" *ngIf="selectedPermissions.length === 0">
+          <span class="material-icons">info</span>
+          Nenhuma permissão específica selecionada. Use o dropdown acima para adicionar permissões individuais ou selecione uma role pré-definida.
+        </div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="form-section-expanded">
+      <div class="form-check">
+        <input 
+          class="form-check-input" 
+          type="checkbox" 
+          id="isActive"
+          formControlName="isActive"
+          [disabled]="isLoading">
+        <label class="form-check-label" for="isActive">
+          <strong>Usuário ativo no sistema</strong>
+          <small class="d-block text-muted">
+            Desmarque para desativar o acesso do usuário ao sistema
+          </small>
+        </label>
+      </div>
+    </div>
+
+    <!-- Informações adicionais -->
+    <div class="info-panel-expanded">
+      <div class="info-icon">
+        <span class="material-icons">security</span>
+      </div>
+      <div class="info-content">
+        <strong>Importante sobre permissões:</strong>
+        <ul class="mb-0">
+          <li><strong>Roles:</strong> Conjuntos pré-definidos de permissões para funções comuns</li>
+          <li><strong>Permissões Específicas:</strong> Controle granular para necessidades particulares</li>
+          <li>Você pode escolher apenas uma das opções por usuário</li>
+          <li>As permissões entram em vigor imediatamente após salvar</li>
+        </ul>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button 
+    type="button" 
+    class="btn btn-secondary" 
+    (click)="onCancel()"
+    [disabled]="isLoading">
+    Cancelar
+  </button>
+  <button 
+    type="button" 
+    class="btn btn-primary" 
+    (click)="onSubmit()"
+    [disabled]="isLoading || !userPermissionsForm.valid">
+    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+    <span *ngIf="!isLoading">{{ isEditMode ? 'Atualizar Permissões' : 'Criar Usuário' }}</span>
+    <span *ngIf="isLoading">{{ isEditMode ? 'Atualizando...' : 'Criando...' }}</span>
+  </button>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" *ngIf="isLoading">
+  <div class="progress-bar-loading">
+    <div class="progress-bar-loading-value"></div>
+  </div>
+</div>

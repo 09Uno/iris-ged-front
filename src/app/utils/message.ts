@@ -12,4 +12,11 @@ export class MessageUtil {
       context.messages.alertMessage = null;
     }, duration);
   }
+
+  static displaySuccessMessage(context: any, message: string, duration: number = 5000) {
+    context.messages.successMessage = message;
+    setTimeout(() => {
+      context.messages.successMessage = null;
+    }, duration);
+  }
 }

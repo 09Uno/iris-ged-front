@@ -113,5 +113,8 @@ export class DocumentService {
     );
   }
 
+  async addType(documentType: DocumentType): Promise<Observable<any>> {
+    return this.gedApi.addDocumentType(documentType);
+  }
 
 }
