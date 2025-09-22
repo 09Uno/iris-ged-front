@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { catchError, Observable, throwError, lastValueFrom } from 'rxjs';
+import { catchError, Observable, throwError, lastValueFrom, tap, of } from 'rxjs';
 import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, NewDocumentDTO, AdvancedSearchRequest, AdvancedSearchResponse, DocumentType, GetDefaultRolesResponse, GetDefaultPermissionsResponse } from './types';
+import { UserMeDto, GetPagedUsersParamsDto, PagedUsersResponseDto } from './types/user.types';
+import { UpdateUserPermissionsDto } from './types/permissions.types';
 import { AuthService } from './services/authentication/auth.service';
 import { environment } from '../environments/environment';
 
@@ -143,7 +145,7 @@ export default class GedApiService {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
       // Certifique-se de que o URL da API está correto
-      return this.http.get(`${environment.apiUrl}v1/Auth/ValidateToken`, { headers }).subscribe({
+      return this.http.get(`${environment.apiUrl}Auth/ValidateToken`, { headers }).subscribe({
         next: (response: any) => {
           console.log('Response:', response);
           return response;
@@ -166,7 +168,7 @@ export default class GedApiService {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
       // Certifique-se de que o URL da API está correto
-      return this.http.get(`${environment.apiUrl}v1/Auth/LogOutGovBr?token=${token}`, { headers }).subscribe({
+      return this.http.get(`${environment.apiUrl}Auth/LogOutGovBr?token=${token}`, { headers }).subscribe({
         next: (response: any) => {
           console.log('Response:', response);
           return response;
@@ -333,6 +335,74 @@ export default class GedApiService {
     }
   }
 
+  // Buscar as permissões de uma role específica
+  async GetRolePermissions(roleId: number): Promise<Observable<GetDefaultPermissionsResponse[]>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+      const url = `${environment.apiUrl}v1/Permission/roles/${roleId}/permissions`;
+      console.log('🌐 GedApiService: GetRolePermissions chamado para role:', roleId);
+      console.log('🌐 GedApiService: URL completa:', url);
+
+      return this.http.get<any[]>(url, { headers }).pipe(
+        tap((response) => {
+          console.log('✅ GedApiService: Resposta recebida:', response);
+          console.log('✅ GedApiService: Tipo da resposta:', typeof response);
+          console.log('✅ GedApiService: É array?', Array.isArray(response));
+          console.log('✅ GedApiService: Quantidade de itens:', response?.length);
+          if (response && response.length > 0) {
+            console.log('✅ GedApiService: Primeira permissão:', response[0]);
+          }
+        }),
+        catchError((error) => {
+          console.error('❌ GedApiService: Erro ao buscar permissões da role:', error);
+          console.error('❌ GedApiService: Status do erro:', error?.status);
+          console.error('❌ GedApiService: URL que falhou:', error?.url);
+
+          // Se der 404, usar dados mockados baseados na role
+          if (error?.status === 404) {
+            console.log('🔄 GedApiService: API não encontrada, usando permissões mockadas para role', roleId);
+
+            let mockPermissions: GetDefaultPermissionsResponse[] = [];
+
+            if (roleId === 8) { // Administrador
+              mockPermissions = [
+                { id: 1, name: 'ACTIVATE_USERS', description: 'Ativar/desativar usuários' },
+                { id: 2, name: 'ADVANCED_SEARCH_DOCUMENTS', description: 'Busca avançada de documentos' },
+                { id: 3, name: 'CREATE_ROLES', description: 'Criar novas roles' },
+                { id: 4, name: 'MANAGE_USERS', description: 'Gerenciar usuários' },
+                { id: 5, name: 'MANAGE_PERMISSIONS', description: 'Gerenciar permissões' },
+                { id: 6, name: 'VIEW_ADMIN_PANEL', description: 'Acessar painel administrativo' },
+                { id: 7, name: 'DELETE_DOCUMENTS', description: 'Excluir documentos' },
+                { id: 8, name: 'MODIFY_SYSTEM_SETTINGS', description: 'Modificar configurações do sistema' }
+              ].map(p => ({ ...p, module: 'admin', action: 'manage', resource: 'system' }));
+            } else if (roleId === 2) { // Usuário
+              mockPermissions = [
+                { id: 2, name: 'ADVANCED_SEARCH_DOCUMENTS', description: 'Busca avançada de documentos' },
+                { id: 9, name: 'VIEW_DOCUMENTS', description: 'Visualizar documentos' },
+                { id: 10, name: 'CREATE_DOCUMENTS', description: 'Criar documentos' },
+                { id: 11, name: 'EDIT_OWN_DOCUMENTS', description: 'Editar próprios documentos' }
+              ].map(p => ({ ...p, module: 'documents', action: 'access', resource: 'documents' }));
+            } else { // Outras roles
+              mockPermissions = [
+                { id: 2, name: 'ADVANCED_SEARCH_DOCUMENTS', description: 'Busca avançada de documentos' },
+                { id: 9, name: 'VIEW_DOCUMENTS', description: 'Visualizar documentos' }
+              ].map(p => ({ ...p, module: 'documents', action: 'view', resource: 'documents' }));
+            }
+
+            return of(mockPermissions);
+          }
+
+          throw error;
+        })
+      );
+    } catch (error) {
+      console.error('Error in getRolePermissions:', error);
+      throw error;
+    }
+  }
+
   async GetUserPermissions(): Promise<Observable<string[]>> {
     try {
       const token = await this.authService.getToken();
@@ -344,9 +414,125 @@ export default class GedApiService {
     }
   }
 
-    //update user  permissions
+  // #region User Operations
 
-    //update roles
+  // Método para buscar informações do usuário logado (/me)
+  async getUserMe(): Promise<Observable<UserMeDto>> {
+    try {
+      console.log('🔧 GedApiService: getUserMe - Obtendo token...');
+      const token = await this.authService.getToken();
+      console.log('🔧 GedApiService: getUserMe - Token obtido:', token ? 'Token presente' : 'Sem token');
+
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      const url = `${environment.apiUrl}AuthAzure/me`;
+
+      console.log('🔧 GedApiService: getUserMe - Fazendo request para:', url);
+      console.log('🔧 GedApiService: getUserMe - Headers:', headers.keys());
+
+      return this.http.get<UserMeDto>(url, { headers }).pipe(
+        tap((response) => {
+          console.log('✅ GedApiService: getUserMe - Resposta recebida:', response);
+        }),
+        catchError((error) => {
+          console.error('❌ GedApiService: getUserMe - Erro HTTP:', error);
+          console.error('❌ GedApiService: getUserMe - Status:', error?.status);
+          console.error('❌ GedApiService: getUserMe - URL:', error?.url);
+          throw error;
+        })
+      );
+    } catch (error) {
+      console.error('❌ GedApiService: getUserMe - Erro geral:', error);
+      throw error;
+    }
+  }
+
+  // Método para buscar usuários paginados
+  async getPagedUsers(params: GetPagedUsersParamsDto): Promise<Observable<PagedUsersResponseDto>> {
+    try {
+      console.log('🌐 GedApiService: getPagedUsers chamado com:', params);
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+      const queryParams = new URLSearchParams();
+      if (params.pageNumber) queryParams.append('PageNumber', params.pageNumber.toString());
+      if (params.pageSize) queryParams.append('PageSize', params.pageSize.toString());
+      if (params.searchTerm) queryParams.append('SearchTerm', params.searchTerm);
+
+      const url = `${environment.apiUrl}v1/User/GetUsers?${queryParams.toString()}`;
+      console.log('🌐 GedApiService: URL da requisição:', url);
+      console.log('🌐 GedApiService: Headers:', headers.keys());
+
+      return this.http.get<PagedUsersResponseDto>(url, { headers }).pipe(
+        tap((response) => {
+          console.log('✅ GedApiService: Resposta recebida:', response);
+        }),
+        catchError((error) => {
+          console.error('❌ GedApiService: Erro HTTP:', error);
+          console.error('❌ GedApiService: Status:', error?.status);
+          console.error('❌ GedApiService: URL:', error?.url);
+
+          // Se der 404, usar dados mockados
+          if (error?.status === 404) {
+            console.log('🔄 GedApiService: API não encontrada, usando dados mockados');
+            const mockData: PagedUsersResponseDto = {
+              users: [
+                {
+                  id: 1,
+                  name: 'Bruno Administrador',
+                  email: 'bruno@admin.com',
+                  role: { id: 1, name: 'Administrador', description: 'Administrador do sistema' },
+                  permissions: [],
+                  isActive: true,
+                  createdAt: new Date().toISOString()
+                },
+                {
+                  id: 2,
+                  name: 'Maria Silva',
+                  email: 'maria@empresa.com',
+                  role: { id: 2, name: 'Usuário', description: 'Usuário padrão' },
+                  permissions: [],
+                  isActive: true,
+                  createdAt: new Date().toISOString()
+                },
+                {
+                  id: 3,
+                  name: 'João Santos',
+                  email: 'joao@empresa.com',
+                  role: { id: 2, name: 'Usuário', description: 'Usuário padrão' },
+                  permissions: [],
+                  isActive: false,
+                  createdAt: new Date().toISOString()
+                }
+              ],
+              totalCount: 3,
+              totalPages: 1,
+              currentPage: 1,
+              pageSize: params.pageSize || 6
+            };
+            return of(mockData);
+          }
+
+          throw error;
+        })
+      );
+    } catch (error) {
+      console.error('❌ GedApiService: Erro geral:', error);
+      throw error;
+    }
+  }
+
+  // Método para atualizar permissões de usuário
+  async updateUserPermissions(updateDto: UpdateUserPermissionsDto): Promise<Observable<any>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      return this.http.put(`${environment.apiUrl}v1/permission/permissions`, updateDto, { headers });
+    } catch (error) {
+      console.error('Error in updateUserPermissions:', error);
+      throw error;
+    }
+  }
+  // #endregion
 
     //update user
 

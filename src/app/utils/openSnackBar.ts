@@ -10,7 +10,25 @@ export class SnackBarService {
 
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
-      duration: 3000, // Exemplo de configuração adicional
+      duration: 3000,
+    });
+  }
+
+  showSuccess(message: string) {
+    this._snackBar.open(message, '✓ Fechar', {
+      duration: 4000,
+      panelClass: ['success-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
+    });
+  }
+
+  showError(message: string) {
+    this._snackBar.open(message, '✗ Fechar', {
+      duration: 5000,
+      panelClass: ['error-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
     });
   }
 }

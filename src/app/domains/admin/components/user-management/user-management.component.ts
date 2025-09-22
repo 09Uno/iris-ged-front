@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { UserPermissionsModalComponent } from '../user-permissions-modal/user-permissions-modal.component';
-import { User, Role, Permission, UserSearchRequest } from '../../../../types';
-import { MessageUtil } from '../../../../utils/message';
+import { MatDialog } from '@angular/material/dialog';
+import { UserPermissionsModalComponent, UserPermissionsModalData } from '../user-permissions-modal/user-permissions-modal.component';
+import { User } from '../../../../types/user.types';
+import { Role, Permission } from '../../../../types/base.types';
 import { UserManagementService } from '../../../../services/user-management.service';
 
 @Component({
@@ -12,11 +12,14 @@ import { UserManagementService } from '../../../../services/user-management.serv
 })
 export class UserManagementComponent implements OnInit {
 
+  // Referência para Math (usado no template)
+  Math = Math;
+
   // Propriedades de controle
   isLoading = false;
   searchTerm = '';
   selectedRole = '';
-  
+
   // Propriedades de paginação
   currentPage = 1;
   pageSize = 6;
@@ -24,12 +27,12 @@ export class UserManagementComponent implements OnInit {
   totalPages = 0;
   hasNextPage = false;
   hasPreviousPage = false;
-  
+
   // Dados
   currentData: User[] = [];
   availableRoles: Role[] = [];
   availablePermissions: Permission[] = [];
-  
+
   // Estatísticas
   totalActiveUsers = 0;
   totalInactiveUsers = 0;
@@ -45,88 +48,257 @@ export class UserManagementComponent implements OnInit {
   constructor(
     private dialog: MatDialog,
     private userService: UserManagementService
-  ) {
-    this.loadInitialData();
-  }
+  ) {}
 
   ngOnInit(): void {
+    this.loadInitialData();
     this.searchUsers();
   }
 
-  loadInitialData(): void {
-    // Carregar roles disponíveis
-    this.userService.getAllRoles().subscribe({
-      next: (roles) => {
-        this.availableRoles = roles;
-      },
-      error: (error) => {
-        console.error('Erro ao carregar roles:', error);
-        MessageUtil.displayErrorMessage(this, 'Erro ao carregar roles disponíveis');
-      }
-    });
+  async loadInitialData(): Promise<void> {
+    try {
+      // Carregar roles disponíveis
+      const rolesObservable = await this.userService.getAvailableRoles();
+      rolesObservable.subscribe({
+        next: (roles) => {
+          this.availableRoles = roles;
+        },
+        error: (error) => {
+          console.error('Erro ao carregar roles:', error);
+          this.messages.errorMessage = 'Erro ao carregar roles disponíveis';
+        }
+      });
 
-    // Carregar permissões padrão
-    this.availablePermissions = this.getDefaultPermissions();
+      // Carregar permissões
+      const permissionsObservable = await this.userService.getAvailablePermissions();
+      permissionsObservable.subscribe({
+        next: (permissions) => {
+          this.availablePermissions = permissions;
+        },
+        error: (error) => {
+          console.error('Erro ao carregar permissões:', error);
+          this.messages.errorMessage = 'Erro ao carregar permissões disponíveis';
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao carregar dados iniciais:', error);
+    }
   }
 
-  getDefaultPermissions(): Permission[] {
-    return [
-      // Documentos
-      { id: 1, name: 'Visualizar Documentos', module: 'documents', action: 'read', resource: 'document', description: 'Pode visualizar documentos' },
-      { id: 2, name: 'Criar Documentos', module: 'documents', action: 'create', resource: 'document', description: 'Pode criar novos documentos' },
-      { id: 3, name: 'Editar Documentos', module: 'documents', action: 'update', resource: 'document', description: 'Pode editar documentos existentes' },
-      { id: 4, name: 'Excluir Documentos', module: 'documents', action: 'delete', resource: 'document', description: 'Pode excluir documentos' },
-      
-      // Usuários
-      { id: 5, name: 'Visualizar Usuários', module: 'users', action: 'read', resource: 'user', description: 'Pode visualizar usuários' },
-      { id: 6, name: 'Criar Usuários', module: 'users', action: 'create', resource: 'user', description: 'Pode criar novos usuários' },
-      { id: 7, name: 'Editar Usuários', module: 'users', action: 'update', resource: 'user', description: 'Pode editar usuários existentes' },
-      { id: 8, name: 'Excluir Usuários', module: 'users', action: 'delete', resource: 'user', description: 'Pode excluir usuários' },
-
-      // Administração
-      { id: 9, name: 'Configurar Sistema', module: 'admin', action: 'configure', resource: 'system', description: 'Pode configurar o sistema' },
-      { id: 10, name: 'Visualizar Logs', module: 'admin', action: 'read', resource: 'logs', description: 'Pode visualizar logs do sistema' },
-      { id: 11, name: 'Gerenciar Permissões', module: 'admin', action: 'manage', resource: 'permissions', description: 'Pode gerenciar permissões' },
-
-      // Relatórios
-      { id: 12, name: 'Gerar Relatórios', module: 'reports', action: 'generate', resource: 'report', description: 'Pode gerar relatórios' },
-      { id: 13, name: 'Exportar Dados', module: 'reports', action: 'export', resource: 'data', description: 'Pode exportar dados' }
-    ];
-  }
-
-  searchUsers(): void {
+  async searchUsers(): Promise<void> {
+    console.log('🔍 UserManagement: searchUsers iniciado');
     this.isLoading = true;
+    this.clearMessages();
 
-    const request: UserSearchRequest = {
-      page: this.currentPage,
-      pageSize: this.pageSize,
-      searchTerm: this.searchTerm || undefined,
-      roleId: this.selectedRole || undefined
-    };
+    try {
+      const params = {
+        pageNumber: this.currentPage - 1, // Converter de 1-based para 0-based
+        pageSize: this.pageSize,
+        searchTerm: this.searchTerm || undefined
+      };
 
-    this.userService.searchUsers(request).subscribe({
-      next: (response) => {
-        this.currentData = response.data;
-        this.totalUsers = response.pagination.totalItems;
-        this.totalPages = response.pagination.totalPages;
-        this.hasNextPage = response.pagination.hasNextPage;
-        this.hasPreviousPage = response.pagination.hasPreviousPage;
-        
-        // Atualizar estatísticas
-        this.totalActiveUsers = response.filters.totalActiveUsers;
-        this.totalInactiveUsers = response.filters.totalInactiveUsers;
-        this.totalAdminUsers = response.filters.totalAdminUsers;
-        
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Erro ao buscar usuários:', error);
-        MessageUtil.displayErrorMessage(this, 'Erro ao carregar usuários');
-        this.isLoading = false;
+      console.log('🔍 UserManagement: Parâmetros:', params);
+      const pagedUsersObservable = await this.userService.getPagedUsers(params);
+      console.log('🔍 UserManagement: Observable obtido:', pagedUsersObservable);
+
+      pagedUsersObservable.subscribe({
+        next: (response) => {
+          console.log('✅ UserManagement: Resposta recebida:', response);
+          console.log('✅ UserManagement: Tipo da resposta:', typeof response);
+          console.log('✅ UserManagement: Propriedades da resposta:', Object.keys(response || {}));
+
+          // Verificar se a resposta tem a estrutura esperada
+          if (!response) {
+            console.error('❌ UserManagement: Resposta é null ou undefined');
+            this.messages.errorMessage = 'Resposta da API é inválida';
+            this.isLoading = false;
+            return;
+          }
+
+          if (!response.users || !Array.isArray(response.users)) {
+            console.error('❌ UserManagement: response.users não é um array:', response.users);
+            this.messages.errorMessage = 'Formato de dados de usuários inválido';
+            this.isLoading = false;
+            return;
+          }
+
+          console.log('✅ UserManagement: Convertendo', response.users.length, 'usuários');
+
+          // Converter UserInfo[] para User[] usando formato da API
+          this.currentData = response.users.map((userInfo: any) => {
+            console.log('👤 UserManagement: Processando usuário:', userInfo);
+            return {
+              id: userInfo.id,
+              name: userInfo.name,
+              email: userInfo.email,
+              roleId: userInfo.role?.roleId,
+              role: userInfo.role ? {
+                id: userInfo.role.roleId,
+                name: userInfo.role.roleName,
+                description: `Role ${userInfo.role.roleName}`,
+                permissions: [],
+                isActive: true,
+                createdAt: new Date().toISOString()
+              } : undefined,
+              permissions: userInfo.permissions || [],
+              isActive: userInfo.isActive,
+              createdAt: userInfo.createdAt || new Date().toISOString(),
+              updatedAt: userInfo.updatedAt
+            };
+          });
+
+          this.totalUsers = response.totalCount || 0;
+          this.totalPages = response.totalPages || 1;
+          this.hasNextPage = this.currentPage < this.totalPages;
+          this.hasPreviousPage = this.currentPage > 1;
+
+          // Calcular estatísticas dos usuários da página atual
+          this.totalActiveUsers = this.currentData.filter(u => u.isActive).length;
+          this.totalInactiveUsers = this.currentData.filter(u => !u.isActive).length;
+          this.totalAdminUsers = this.currentData.filter(u => u.role?.name.toLowerCase().includes('admin')).length;
+
+          console.log('✅ UserManagement: Dados processados:', {
+            totalUsers: this.totalUsers,
+            currentDataLength: this.currentData.length,
+            totalPages: this.totalPages,
+            activeUsers: this.totalActiveUsers,
+            inactiveUsers: this.totalInactiveUsers,
+            adminUsers: this.totalAdminUsers
+          });
+
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('❌ UserManagement: Erro ao buscar usuários:', error);
+          console.error('❌ UserManagement: Status do erro:', error?.status);
+          console.error('❌ UserManagement: Mensagem do erro:', error?.message);
+          console.error('❌ UserManagement: Erro completo:', error);
+
+          if (error?.status === 401) {
+            this.messages.errorMessage = 'Não autorizado - verifique seu login';
+          } else if (error?.status === 403) {
+            this.messages.errorMessage = 'Sem permissão para acessar usuários';
+          } else if (error?.status === 404) {
+            this.messages.errorMessage = 'Endpoint de usuários não encontrado';
+          } else {
+            this.messages.errorMessage = 'Erro ao carregar usuários: ' + (error?.message || 'Erro desconhecido');
+          }
+
+          this.isLoading = false;
+        }
+      });
+    } catch (error) {
+      console.error('❌ UserManagement: Erro no try/catch:', error);
+      this.messages.errorMessage = 'Erro crítico ao carregar usuários: ' + (error as any)?.message;
+      this.isLoading = false;
+    }
+  }
+
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.searchUsers();
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.searchUsers();
+  }
+
+  clearMessages(): void {
+    this.messages.errorMessage = '';
+    this.messages.alertMessage = '';
+    this.messages.successMessage = '';
+  }
+
+  createUser(): void {
+    console.log('🆕 UserManagement: createUser chamado');
+    console.log('🆕 UserManagement: availableRoles:', this.availableRoles);
+    console.log('🆕 UserManagement: availablePermissions:', this.availablePermissions);
+
+    const dialogRef = this.dialog.open(UserPermissionsModalComponent, {
+      width: '900px',
+      maxHeight: '90vh',
+      disableClose: true,
+      data: {
+        user: undefined,
+        availableRoles: this.availableRoles,
+        availablePermissions: this.availablePermissions
+      } as UserPermissionsModalData
+    });
+
+    console.log('🆕 UserManagement: Modal aberto:', dialogRef);
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success === true) {
+        this.messages.successMessage = 'Usuário criado com sucesso!';
+        this.searchUsers();
+      } else if (result?.success === false) {
+        this.messages.errorMessage = result.message || 'Erro ao criar usuário';
       }
     });
   }
 
+  editUser(user: User): void {
+    console.log('✏️ UserManagement: editUser chamado para:', user.name);
+    console.log('✏️ UserManagement: availableRoles:', this.availableRoles);
+    console.log('✏️ UserManagement: availablePermissions:', this.availablePermissions);
+
+    const dialogRef = this.dialog.open(UserPermissionsModalComponent, {
+      width: '900px',
+      maxHeight: '90vh',
+      disableClose: true,
+      data: {
+        user: user,
+        availableRoles: this.availableRoles,
+        availablePermissions: this.availablePermissions
+      } as UserPermissionsModalData
+    });
+
+    console.log('✏️ UserManagement: Modal aberto:', dialogRef);
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success === true) {
+        this.messages.successMessage = 'Usuário atualizado com sucesso!';
+        this.searchUsers();
+      } else if (result?.success === false) {
+        this.messages.errorMessage = result.message || 'Erro ao atualizar usuário';
+      }
+    });
+  }
+
+  toggleUserStatus(user: User): void {
+    const action = user.isActive ? 'desativar' : 'ativar';
+    const newStatus = !user.isActive;
+
+    this.userService.updateUserStatus(user.id, newStatus).subscribe({
+      next: () => {
+        user.isActive = newStatus;
+        this.messages.successMessage = `Usuário ${action}do com sucesso!`;
+        this.searchUsers();
+      },
+      error: (error) => {
+        console.error(`Erro ao ${action} usuário:`, error);
+        this.messages.errorMessage = `Erro ao ${action} usuário`;
+      }
+    });
+  }
+
+  deleteUser(user: User): void {
+    if (confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`)) {
+      this.userService.deleteUser(user.id).subscribe({
+        next: () => {
+          this.messages.successMessage = 'Usuário excluído com sucesso!';
+          this.searchUsers();
+        },
+        error: (error) => {
+          console.error('Erro ao excluir usuário:', error);
+          this.messages.errorMessage = 'Erro ao excluir usuário';
+        }
+      });
+    }
+  }
+
+  // Métodos de paginação
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
       this.currentPage = page;
@@ -153,7 +325,7 @@ export class UserManagementComponent implements OnInit {
     const maxPagesToShow = 5;
     let startPage = Math.max(1, this.currentPage - Math.floor(maxPagesToShow / 2));
     let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
-    
+
     if (endPage - startPage + 1 < maxPagesToShow) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
@@ -161,177 +333,26 @@ export class UserManagementComponent implements OnInit {
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
-    
+
     return pages;
   }
 
-  getPaginationInfo(): string {
-    if (this.totalUsers === 0) {
-      return 'Nenhum usuário encontrado';
-    }
-    
-    const startIndex = (this.currentPage - 1) * this.pageSize + 1;
-    const endIndex = Math.min(startIndex + this.currentData.length - 1, this.totalUsers);
-    
-    return `${startIndex}-${endIndex} de ${this.totalUsers} usuários`;
-  }
-
-  onSearchChange(searchTerm: string): void {
-    this.searchTerm = searchTerm;
-    this.currentPage = 1;
-    this.searchUsers();
-  }
-
-  onRoleFilterChange(roleId: string): void {
-    this.selectedRole = roleId;
-    this.currentPage = 1;
-    this.searchUsers();
-  }
-
-  clearFilters(): void {
-    this.searchTerm = '';
-    this.selectedRole = '';
-    this.currentPage = 1;
-    this.searchUsers();
-  }
-
-  createUser(): void {
-    const dialogRef: MatDialogRef<UserPermissionsModalComponent> = this.dialog.open(
-      UserPermissionsModalComponent,
-      {
-        width: '900px',
-        maxHeight: '90vh',
-        disableClose: true,
-        data: {
-          user: null, // Novo usuário
-          availableRoles: this.availableRoles,
-          availablePermissions: this.availablePermissions
-        }
-      }
-    );
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result?.success === true) {
-        this.userService.createUser(result.data).subscribe({
-          next: (response) => {
-            if (response.success) {
-              MessageUtil.displaySuccessMessage(this, response.message);
-              this.searchUsers(); // Recarregar dados
-            } else {
-              MessageUtil.displayErrorMessage(this, response.message);
-            }
-          },
-          error: (error) => {
-            console.error('Erro ao criar usuário:', error);
-            MessageUtil.displayErrorMessage(this, 'Erro ao criar usuário');
-          }
-        });
-      } else if (result?.success === false) {
-        MessageUtil.displayErrorMessage(this, result.message);
-      }
-    });
-  }
-
-  editUser(user: User): void {
-    const dialogRef: MatDialogRef<UserPermissionsModalComponent> = this.dialog.open(
-      UserPermissionsModalComponent,
-      {
-        width: '900px',
-        maxHeight: '90vh',
-        disableClose: true,
-        data: {
-          user: user, // Usuário para edição
-          availableRoles: this.availableRoles,
-          availablePermissions: this.availablePermissions
-        }
-      }
-    );
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result?.success === true) {
-        this.userService.updateUser(user.id, result.data).subscribe({
-          next: (response) => {
-            if (response.success) {
-              MessageUtil.displaySuccessMessage(this, response.message);
-              this.searchUsers(); // Recarregar dados
-            } else {
-              MessageUtil.displayErrorMessage(this, response.message);
-            }
-          },
-          error: (error) => {
-            console.error('Erro ao atualizar usuário:', error);
-            MessageUtil.displayErrorMessage(this, 'Erro ao atualizar usuário');
-          }
-        });
-      } else if (result?.success === false) {
-        MessageUtil.displayErrorMessage(this, result.message);
-      }
-    });
-  }
-
-  toggleUserStatus(user: User): void {
-    this.userService.toggleUserStatus(user.id).subscribe({
-      next: (response) => {
-        if (response.success) {
-          MessageUtil.displaySuccessMessage(this, response.message);
-          this.searchUsers(); // Recarregar dados
-        } else {
-          MessageUtil.displayErrorMessage(this, response.message);
-        }
-      },
-      error: (error) => {
-        console.error('Erro ao alterar status do usuário:', error);
-        MessageUtil.displayErrorMessage(this, 'Erro ao alterar status do usuário');
-      }
-    });
-  }
-
-  deleteUser(user: User): void {
-    if (confirm(`Tem certeza que deseja excluir o usuário "${user.name}"?`)) {
-      this.userService.deleteUser(user.id).subscribe({
-        next: (response) => {
-          if (response.success) {
-            MessageUtil.displaySuccessMessage(this, response.message);
-            // Se estamos na última página e ela ficou vazia, voltar para a anterior
-            if (this.currentData.length === 1 && this.currentPage > 1) {
-              this.currentPage--;
-            }
-            this.searchUsers(); // Recarregar dados
-          } else {
-            MessageUtil.displayErrorMessage(this, response.message);
-          }
-        },
-        error: (error) => {
-          console.error('Erro ao excluir usuário:', error);
-          MessageUtil.displayErrorMessage(this, 'Erro ao excluir usuário');
-        }
-      });
-    }
-  }
-
-  getUserPermissionsCount(user: User): number {
-    if (user.customPermissions) {
-      return user.customPermissions.length;
-    }
-    if (user.role) {
-      return user.role.permissions?.length || 0;
-    }
-    return 0;
-  }
-
+  // Métodos de utilidade
   getUserPermissionsText(user: User): string {
-    const count = this.getUserPermissionsCount(user);
     if (user.role) {
+      const count = user.permissions?.length || 0;
       return `${user.role.name} (${count} permissões)`;
     }
-    if (user.customPermissions?.length) {
-      return `Permissões específicas (${count})`;
+    if (user.permissions?.length) {
+      return `Permissões específicas (${user.permissions.length})`;
     }
     return 'Nenhuma permissão';
   }
 
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+  formatDate(dateString: string | Date): string {
+    if (!dateString) return '';
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -363,4 +384,5 @@ export class UserManagementComponent implements OnInit {
   getAdminUsersCount(): number {
     return this.totalAdminUsers;
   }
+
 }

@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ToolBarComponent } from "@features/tool-bar.component/tool-bar.component";
 import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
+import GedApiService from '../../../../ged.api.service';
+import { AdvancedSearchRequest, AdvancedSearchResponse, SearchDocumentItem } from '../../../../types';
 
 interface DocumentResult {
   id: string;
@@ -29,9 +31,10 @@ interface DocumentResult {
 
 export class DocumentSearchComponent implements OnInit {
   searchForm: FormGroup;
-  documentResults: DocumentResult[] = [];
+  documentResults: SearchDocumentItem[] = [];
   isCorporative: boolean = true; // Definido como corporativo por padrão
   isProfessional: boolean = false; // Definido como profissional por padrão
+  isLoading: boolean = false;
 
 
   searchScopes = [
@@ -42,8 +45,8 @@ export class DocumentSearchComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
-    // private documentService: DocumentService
+    private router: Router,
+    private gedApiService: GedApiService
   ) {
     this.searchForm = this.fb.group({
       searchScopes: [['process', 'generated', 'external']],
@@ -68,16 +71,58 @@ export class DocumentSearchComponent implements OnInit {
     // Inicialização opcional
   }
 
-  search() {
+  async search(): Promise<void> {
     const searchParams = this.searchForm.value;
-    // this.documentService.searchDocuments(searchParams).subscribe(
-    //   results => {
-    //     this.documentResults = results;
-    //   },
-    //   error => {
-    //     console.error('Erro na busca', error);
-    //   }
-    // );
+    this.isLoading = true;
+
+    try {
+      console.log('🔍 DocumentSearch: Iniciando busca com parâmetros:', searchParams);
+
+      // Mapear parâmetros do formulário para AdvancedSearchRequest
+      const searchRequest: AdvancedSearchRequest = {
+        searchText: searchParams.searchText || undefined,
+        subject: searchParams.assunto || undefined,
+        generatingAgency: searchParams.orgaoGerador || undefined,
+        unitGenerated: searchParams.unidadeGerada || undefined,
+        documentTypeId: searchParams.tipoDocumento || undefined,
+        author: searchParams.usuarioGerador || undefined,
+        startDate: searchParams.periodoInicial || undefined,
+        endDate: searchParams.periodoFinal || undefined,
+        searchType: 'documents',
+        includeGenerated: searchParams.searchScopes.includes('generated'),
+        includeExternal: searchParams.searchScopes.includes('external'),
+        page: 0,
+        pageSize: 50,
+        orderBy: 'documentDate',
+        orderDirection: 'desc'
+      };
+
+      const searchObservable = await this.gedApiService.advancedSearch(searchRequest);
+
+      searchObservable.subscribe({
+        next: (response: AdvancedSearchResponse) => {
+          console.log('✅ DocumentSearch: Resultados recebidos:', response);
+
+          if (response.success) {
+            this.documentResults = response.data;
+          } else {
+            console.error('❌ DocumentSearch: Erro na busca:', response.message);
+            this.documentResults = [];
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('❌ DocumentSearch: Erro na busca:', error);
+          this.documentResults = [];
+          this.isLoading = false;
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ DocumentSearch: Erro na busca:', error);
+      this.documentResults = [];
+      this.isLoading = false;
+    }
   }
 
   clearSearch() {
@@ -85,14 +130,27 @@ export class DocumentSearchComponent implements OnInit {
     this.documentResults = [];
   }
 
-  viewDocumentDetails(document: DocumentResult) {
+  viewDocumentDetails(document: SearchDocumentItem) {
+    console.log('🔍 DocumentSearch: Visualizando detalhes do documento:', document);
+
     // Navegar para a página de gerenciamento de documentos com parâmetros
-    // Assumindo que o document tem protocol e que pode passar o documento ID
-    this.router.navigate(['/documentos'], {
-      queryParams: {
-        protocol: document.contractNumber, // ou outro campo que represente o processo
-        documentId: document.id
-      }
-    });
+    const protocol = document.processIdentifier || document.generatedProtocol;
+
+    if (protocol) {
+      console.log('🔍 DocumentSearch: Navegando com protocolo:', protocol);
+      this.router.navigate(['/documentos'], {
+        queryParams: {
+          protocol: protocol,
+          documentId: document.id
+        }
+      });
+    } else {
+      console.log('🔍 DocumentSearch: Navegando apenas com documentId:', document.id);
+      this.router.navigate(['/documentos'], {
+        queryParams: {
+          documentId: document.id
+        }
+      });
+    }
   }
 }

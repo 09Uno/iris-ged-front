@@ -1,0 +1,90 @@
+<!-- forbidden.component.html -->
+<app-tool-bar [title]="'Acesso Negado'">
+</app-tool-bar>
+
+<div class="container-fluid main page-content">
+  <div class="row main-content">
+    <div class="col-12">
+      <div class="card form-card">
+        <div class="card-body form-body">
+
+          <!-- Seção de Acesso Negado -->
+          <div class="form-section-expanded">
+            <div class="forbidden-container">
+
+              <!-- Ícone principal -->
+              <div class="forbidden-icon">
+                <span class="material-icons">block</span>
+              </div>
+
+              <!-- Título e mensagem -->
+              <div class="forbidden-content">
+                <h2 class="forbidden-title">Acesso Negado</h2>
+                <p class="forbidden-message">
+                  Você não possui permissões suficientes para acessar esta página.
+                </p>
+                <p class="forbidden-submessage">
+                  Entre em contato com o administrador do sistema se acredita que isso é um erro.
+                </p>
+              </div>
+
+              <!-- Ações disponíveis -->
+              <div class="forbidden-actions">
+                <button type="button" class="admin-card" (click)="goBack()">
+                  <div class="admin-card-icon">
+                    <span class="material-icons">arrow_back</span>
+                  </div>
+                  <div class="admin-card-content">
+                    <h6 class="admin-card-title">Voltar</h6>
+                    <p class="admin-card-description">
+                      Retornar à página anterior
+                    </p>
+                  </div>
+                  <div class="admin-card-action">
+                    <span class="material-icons">arrow_forward</span>
+                  </div>
+                </button>
+
+                <button type="button" class="admin-card" (click)="goHome()">
+                  <div class="admin-card-icon">
+                    <span class="material-icons">home</span>
+                  </div>
+                  <div class="admin-card-content">
+                    <h6 class="admin-card-title">Página Inicial</h6>
+                    <p class="admin-card-description">
+                      Ir para a página inicial
+                    </p>
+                  </div>
+                  <div class="admin-card-action">
+                    <span class="material-icons">arrow_forward</span>
+                  </div>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Informações de Contato -->
+          <div class="form-section-expanded mt-4">
+            <h6 class="section-title">Precisa de Ajuda?</h6>
+
+            <div class="info-panel-expanded">
+              <div class="info-icon">
+                <span class="material-icons">support_agent</span>
+              </div>
+              <div class="info-content">
+                <div class="row">
+                  <div class="col-md-12">
+                    <strong>Contato do Suporte:</strong><br>
+                    Para solicitar acesso ou reportar problemas, entre em contato com o administrador do sistema através dos canais oficiais de suporte.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

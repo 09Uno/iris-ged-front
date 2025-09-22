@@ -82,6 +82,56 @@
       </div>
     </div>
 
+    <!-- Formato do Documento -->
+    <div class="form-section-expanded">
+      <h6 class="section-title">Formato do Documento</h6>
+
+      <div class="mb-3">
+        <label class="form-label-expanded">Tipo de Conteúdo:</label>
+        <div class="format-selection">
+          <div class="format-options">
+            <div *ngFor="let format of documentFormats" class="format-option">
+              <input
+                type="radio"
+                [id]="'format_' + format.value"
+                [value]="format.value"
+                formControlName="format"
+                class="form-check-input"
+                [disabled]="isLoading">
+              <label [for]="'format_' + format.value" class="format-label">
+                <div class="format-icon">
+                  <span class="material-icons">{{ format.icon }}</span>
+                </div>
+                <div class="format-info">
+                  <strong>{{ format.label }}</strong>
+                  <small class="d-block text-muted" *ngIf="format.value === 'file'">
+                    Upload de arquivos externos (PDF, DOC, XLS, etc.)
+                  </small>
+                  <small class="d-block text-muted" *ngIf="format.value === 'html'">
+                    Input para inserir código HTML diretamente
+                  </small>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editor HTML - Aparece apenas quando formato HTML é selecionado -->
+      <div class="mb-3" *ngIf="isHtmlFormat()">
+        <label for="htmlContent" class="form-label-expanded">Conteúdo HTML:</label>
+        <quill-editor
+          formControlName="htmlContent"
+          [style]="{ height: '300px' }"
+          placeholder="Digite ou cole o código HTML aqui..."
+          [modules]="quillModules"
+          [disabled]="isLoading">
+        </quill-editor>
+        <small class="text-muted">
+          Use este editor para criar conteúdo HTML que será usado como template para documentos deste tipo.
+        </small>
+      </div>
+    </div>
 
     <!-- Status -->
     <div class="form-section-expanded">

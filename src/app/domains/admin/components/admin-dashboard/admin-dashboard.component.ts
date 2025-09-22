@@ -57,9 +57,10 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   openUserManagement(): void {
-    // Tenta navegação relativa primeiro, depois absoluta como fallback
-    this.router.navigate(['usuarios'], { relativeTo: this.route }).catch(() => {
-      this.router.navigate(['/admin/administracao/usuarios']);
-    });
+    console.log('🔗 Navegando para administracao/usuarios');
+    this.router.navigate(['/administracao/usuarios']).then(
+      (success) => console.log('🔗 Navegação sucesso:', success),
+      (error) => console.error('🔗 Erro na navegação:', error)
+    );
   }
 }

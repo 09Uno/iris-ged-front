@@ -12,6 +12,7 @@ export interface Role {
 export interface Permission {
   id: number;
   name: string;
+  code?: string; // Código opcional para identificação
   description?: string;
   module: string;
   action: string;
@@ -24,7 +25,7 @@ export interface User {
   email: string;
   roleId?: number;
   role?: Role;
-  customPermissions?: Permission[];
+  Permissions?: Permission[];
   isActive: boolean;
   createdAt: string;
   lastLogin?: string;

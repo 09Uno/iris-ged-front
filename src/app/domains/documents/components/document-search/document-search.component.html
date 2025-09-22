@@ -140,10 +140,10 @@
                     </thead>
                     <tbody>
                       <tr *ngFor="let doc of documentResults" style="border-bottom: 1px solid rgba(9, 76, 140, 0.1); transition: background-color 0.2s ease;" onmouseenter="this.style.backgroundColor='rgba(9, 76, 140, 0.05)'" onmouseleave="this.style.backgroundColor=''">
-                        <td style="padding: 12px; color: #495057;">{{ doc.contractNumber }}</td>
-                        <td style="padding: 12px; color: #495057;">{{ doc.description }}</td>
-                        <td style="padding: 12px; color: #495057;">{{ doc.user }}</td>
-                        <td style="padding: 12px; color: #495057;">{{ doc.date | date:'dd/MM/yyyy' }}</td>
+                        <td style="padding: 12px; color: #495057;">{{ doc.processIdentifier || doc.generatedProtocol }}</td>
+                        <td style="padding: 12px; color: #495057;">{{ doc.subject || doc.observations }}</td>
+                        <td style="padding: 12px; color: #495057;">{{ doc.author }}</td>
+                        <td style="padding: 12px; color: #495057;">{{ doc.documentDate | date:'dd/MM/yyyy' }}</td>
                         <td style="padding: 12px; text-align: center;">
                           <button class="iris-btn-primary" (click)="viewDocumentDetails(doc)" style="padding: 0.3rem 0.8rem; font-size: 0.75rem;">
                             <span class="material-icons" style="font-size: 14px; margin-right: 4px;">visibility</span> Ver

@@ -1,305 +1,330 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
-import { User, Role, Permission, UserSearchRequest, UserSearchResponse } from '../types';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+
+import { User, GetPagedUsersParamsDto, PagedUsersResponseDto } from '../types/user.types';
+import { UpdateUserPermissionsDto } from '../types/permissions.types';
+import { environment } from '@environments/environment';
+import GedApiService from '../ged.api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserManagementService {
+  private readonly apiUrl = environment.apiUrl;
 
-  private mockUsers: User[] = [
-    {
-      id: 1,
-      name: 'João Silva',
-      email: 'joao.silva@empresa.com',
-      roleId: 1,
-      role: { id: 1, name: 'Administrador', description: 'Acesso total', permissions: [], isActive: true, createdAt: '2024-01-01' },
-      isActive: true,
-      createdAt: '2024-01-15T10:00:00Z',
-      lastLogin: '2024-01-20T14:30:00Z'
-    },
-    {
-      id: 2,
-      name: 'Maria Santos',
-      email: 'maria.santos@empresa.com',
-      roleId: 2,
-      role: { id: 2, name: 'Editor', description: 'Pode editar documentos', permissions: [], isActive: true, createdAt: '2024-01-01' },
-      isActive: true,
-      createdAt: '2024-01-10T09:15:00Z',
-      lastLogin: '2024-01-19T16:45:00Z'
-    },
-    {
-      id: 3,
-      name: 'Pedro Costa',
-      email: 'pedro.costa@empresa.com',
-      roleId: undefined,
-      customPermissions: [
-        { id: 1, name: 'Visualizar Documentos', module: 'documents', action: 'read', resource: 'document', description: 'Pode visualizar documentos' },
-        { id: 5, name: 'Visualizar Usuários', module: 'users', action: 'read', resource: 'user', description: 'Pode visualizar usuários' }
-      ],
-      isActive: false,
-      createdAt: '2024-01-05T11:30:00Z',
-      lastLogin: '2024-01-18T08:20:00Z'
-    },
-    {
-      id: 4,
-      name: 'Ana Oliveira',
-      email: 'ana.oliveira@empresa.com',
-      roleId: 3,
-      role: { id: 3, name: 'Visualizador', description: 'Somente visualização', permissions: [], isActive: true, createdAt: '2024-01-01' },
-      isActive: true,
-      createdAt: '2024-01-12T15:20:00Z',
-      lastLogin: '2024-01-21T10:15:00Z'
-    },
-    {
-      id: 5,
-      name: 'Carlos Ferreira',
-      email: 'carlos.ferreira@empresa.com',
-      roleId: 2,
-      role: { id: 2, name: 'Editor', description: 'Pode editar documentos', permissions: [], isActive: true, createdAt: '2024-01-01' },
-      isActive: true,
-      createdAt: '2024-01-08T13:45:00Z',
-      lastLogin: '2024-01-22T09:10:00Z'
-    },
-    {
-      id: 6,
-      name: 'Lucia Almeida',
-      email: 'lucia.almeida@empresa.com',
-      roleId: 4,
-      role: { id: 4, name: 'Operador', description: 'Operações básicas', permissions: [], isActive: true, createdAt: '2024-01-01' },
-      isActive: true,
-      createdAt: '2024-01-20T16:30:00Z',
-      lastLogin: '2024-01-23T11:25:00Z'
-    },
-    {
-      id: 7,
-      name: 'Roberto Lima',
-      email: 'roberto.lima@empresa.com',
-      roleId: 1,
-      role: { id: 1, name: 'Administrador', description: 'Acesso total', permissions: [], isActive: true, createdAt: '2024-01-01' },
-      isActive: false,
-      createdAt: '2024-01-03T08:15:00Z',
-      lastLogin: '2024-01-17T14:50:00Z'
-    },
-    {
-      id: 8,
-      name: 'Fernanda Silva',
-      email: 'fernanda.silva@empresa.com',
-      roleId: 3,
-      role: { id: 3, name: 'Visualizador', description: 'Somente visualização', permissions: [], isActive: true, createdAt: '2024-01-01' },
-      isActive: true,
-      createdAt: '2024-01-18T12:00:00Z',
-      lastLogin: '2024-01-24T15:35:00Z'
-    },
-    {
-      id: 9,
-      name: 'Paulo Mendes',
-      email: 'paulo.mendes@empresa.com',
-      roleId: 4,
-      role: { id: 4, name: 'Operador', description: 'Operações básicas', permissions: [], isActive: true, createdAt: '2024-01-01' },
-      isActive: true,
-      createdAt: '2024-01-14T10:20:00Z',
-      lastLogin: '2024-01-25T08:45:00Z'
-    },
-    {
-      id: 10,
-      name: 'Isabel Costa',
-      email: 'isabel.costa@empresa.com',
-      roleId: 2,
-      role: { id: 2, name: 'Editor', description: 'Pode editar documentos', permissions: [], isActive: true, createdAt: '2024-01-01' },
-      isActive: false,
-      createdAt: '2024-01-06T14:55:00Z',
-      lastLogin: '2024-01-16T17:20:00Z'
+  constructor(private http: HttpClient, private gedApi: GedApiService) {}
+
+  /**
+   * Obtém usuários com paginação
+   */
+  async getPagedUsers(params: GetPagedUsersParamsDto): Promise<Observable<PagedUsersResponseDto>> {
+    try {
+      console.log('📡 UserManagementService: getPagedUsers chamado com:', params);
+      const result = await this.gedApi.getPagedUsers(params);
+      console.log('📡 UserManagementService: resultado do gedApi:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ UserManagementService: Erro ao buscar usuários paginados:', error);
+      throw error;
     }
-  ];
-
-  private availableRoles: Role[] = [
-    { id: 1, name: 'Administrador', description: 'Acesso total ao sistema', permissions: [], isActive: true, createdAt: '2024-01-01' },
-    { id: 2, name: 'Editor', description: 'Pode editar documentos', permissions: [], isActive: true, createdAt: '2024-01-01' },
-    { id: 3, name: 'Visualizador', description: 'Somente visualização', permissions: [], isActive: true, createdAt: '2024-01-01' },
-    { id: 4, name: 'Operador', description: 'Operações básicas', permissions: [], isActive: true, createdAt: '2024-01-01' }
-  ];
-
-  constructor() { }
-
-  searchUsers(request: UserSearchRequest): Observable<UserSearchResponse> {
-    // Simular delay da API
-    return of(this.processUserSearch(request)).pipe(delay(500));
   }
 
-  private processUserSearch(request: UserSearchRequest): UserSearchResponse {
-    let filteredUsers = [...this.mockUsers];
+  /**
+   * Obtém todos os usuários do sistema (usando paginação com tamanho grande)
+   */
+  async getAllUsers(): Promise<Observable<User[]>> {
+    try {
+      const params: GetPagedUsersParamsDto = {
+        pageNumber: 1,
+        pageSize: 100 // Busca muitos usuários para simular "todos"
+      };
 
-    // Aplicar filtros
-    if (request.searchTerm?.trim()) {
-      const searchLower = request.searchTerm.toLowerCase();
-      filteredUsers = filteredUsers.filter(user => 
-        user.name.toLowerCase().includes(searchLower) ||
-        user.email.toLowerCase().includes(searchLower) ||
-        user.role?.name.toLowerCase().includes(searchLower)
+      const pagedUsersObservable = await this.gedApi.getPagedUsers(params);
+
+      return pagedUsersObservable.pipe(
+        map((response: PagedUsersResponseDto) => {
+          // Converte UserInfo[] para User[]
+          if (!response.users || !Array.isArray(response.users)) {
+            return [];
+          }
+          return response.users.map((userInfo: any) => ({
+            id: userInfo.id,
+            name: userInfo.name,
+            email: userInfo.email,
+            roleId: userInfo.role?.id,
+            role: userInfo.role ? {
+              id: userInfo.role.id,
+              name: userInfo.role.name,
+              description: userInfo.role.description,
+              permissions: [],
+              isActive: true,
+              createdAt: new Date().toISOString()
+            } : undefined,
+            permissions: userInfo.permissions || [],
+            isActive: userInfo.isActive,
+            createdAt: userInfo.createdAt || new Date().toISOString(),
+            updatedAt: userInfo.updatedAt
+          }));
+        }),
+        catchError(this.handleError)
       );
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+      throw error;
     }
+  }
 
-    if (request.roleId) {
-      filteredUsers = filteredUsers.filter(user => 
-        user.roleId?.toString() === request.roleId ||
-        (request.roleId === 'custom' && !user.roleId && user.customPermissions?.length)
+  /**
+   * Obtém um usuário específico por ID
+   */
+  getUserById(id: number): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/users/${id}`)
+      .pipe(
+        catchError(this.handleError)
       );
+  }
+
+  /**
+   * Cria um novo usuário
+   */
+  createUser(user: Partial<User>): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/users`, user)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Atualiza um usuário existente
+   */
+  updateUser(id: number, user: Partial<User>): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/users/${id}`, user)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Atualiza o status de ativo/inativo de um usuário
+   */
+  updateUserStatus(id: number, isActive: boolean): Observable<any> {
+    console.log('🔄 UserManagementService: updateUserStatus chamado - não implementado ainda');
+    return new Observable(observer => {
+      // Simular sucesso por enquanto
+      setTimeout(() => {
+        observer.next({ success: true });
+        observer.complete();
+      }, 500);
+    });
+  }
+
+  /**
+   * Exclui um usuário
+   */
+  deleteUser(id: number): Observable<any> {
+    console.log('🗑️ UserManagementService: deleteUser chamado - não implementado ainda');
+    return new Observable(observer => {
+      // Simular sucesso por enquanto
+      setTimeout(() => {
+        observer.next({ success: true });
+        observer.complete();
+      }, 500);
+    });
+  }
+
+  /**
+   * Atualiza as permissões de um usuário
+   */
+  async updateUserPermissions(updateDto: UpdateUserPermissionsDto): Promise<Observable<any>> {
+    try {
+      return await this.gedApi.updateUserPermissions(updateDto);
+    } catch (error) {
+      console.error('Erro ao atualizar permissões:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Buscar roles disponíveis
+   */
+  async getAvailableRoles(): Promise<Observable<any[]>> {
+    try {
+      return await this.gedApi.GetDefaultRoles();
+    } catch (error) {
+      console.error('Erro ao buscar roles:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Buscar permissões disponíveis
+   */
+  async getAvailablePermissions(): Promise<Observable<any[]>> {
+    try {
+      return await this.gedApi.GetAllPermissions();
+    } catch (error) {
+      console.error('Erro ao buscar permissões:', error);
+      throw error;
+    }
+  }
+
+
+  /**
+   * Obtém as permissões de um usuário específico
+   */
+  getUserPermissions(userId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/users/${userId}/permissions`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Busca usuários por termo de pesquisa
+   */
+  searchUsers(searchTerm: string): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/users/search`, {
+      params: { q: searchTerm }
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Obtém usuários por função/role
+   */
+  getUsersByRole(roleId: number): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/users/by-role/${roleId}`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Obtém as permissões de uma role específica
+   */
+  async getRolePermissions(roleId: number): Promise<Observable<any[]>> {
+    try {
+      return await this.gedApi.GetRolePermissions(roleId);
+    } catch (error) {
+      console.error('Erro ao buscar permissões da role:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Valida se um email já está em uso
+   */
+  validateEmail(email: string, userId?: number): Observable<boolean> {
+    const params: any = { email };
+    if (userId) {
+      params.excludeUserId = userId;
     }
 
-    if (request.isActive !== undefined) {
-      filteredUsers = filteredUsers.filter(user => user.isActive === request.isActive);
-    }
+    return this.http.get<{ available: boolean }>(`${this.apiUrl}/users/validate-email`, { params })
+      .pipe(
+        map(response => response.available),
+        catchError(this.handleError)
+      );
+  }
 
-    // Aplicar ordenação (se especificada)
-    if (request.sortBy) {
-      filteredUsers.sort((a, b) => {
-        let aValue: any, bValue: any;
-        
-        switch (request.sortBy) {
-          case 'name':
-            aValue = a.name;
-            bValue = b.name;
-            break;
-          case 'email':
-            aValue = a.email;
-            bValue = b.email;
-            break;
-          case 'createdAt':
-            aValue = new Date(a.createdAt);
-            bValue = new Date(b.createdAt);
-            break;
-          case 'lastLogin':
-            aValue = a.lastLogin ? new Date(a.lastLogin) : new Date(0);
-            bValue = b.lastLogin ? new Date(b.lastLogin) : new Date(0);
-            break;
-          default:
-            return 0;
-        }
+  /**
+   * Redefine a senha de um usuário
+   */
+  resetUserPassword(userId: number): Observable<{ temporaryPassword: string }> {
+    return this.http.post<{ temporaryPassword: string }>(`${this.apiUrl}/users/${userId}/reset-password`, {})
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 
-        if (aValue < bValue) return request.sortOrder === 'DESC' ? 1 : -1;
-        if (aValue > bValue) return request.sortOrder === 'DESC' ? -1 : 1;
-        return 0;
-      });
-    }
+  /**
+   * Obtém estatísticas dos usuários
+   */
+  getUserStats(): Observable<{
+    total: number;
+    active: number;
+    inactive: number;
+    byRole: { [roleName: string]: number };
+  }> {
+    return this.http.get<any>(`${this.apiUrl}/users/stats`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 
-    // Calcular paginação
-    const totalItems = filteredUsers.length;
-    const totalPages = Math.ceil(totalItems / request.pageSize);
-    const startIndex = (request.page - 1) * request.pageSize;
-    const endIndex = startIndex + request.pageSize;
-    const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-
-    // Calcular estatísticas
-    const totalActiveUsers = this.mockUsers.filter(u => u.isActive).length;
-    const totalInactiveUsers = this.mockUsers.filter(u => !u.isActive).length;
-    const totalAdminUsers = this.mockUsers.filter(u => u.role?.name === 'Administrador').length;
-
-    return {
-      data: paginatedUsers,
-      pagination: {
-        currentPage: request.page,
-        pageSize: request.pageSize,
-        totalItems: totalItems,
-        totalPages: totalPages,
-        hasNextPage: request.page < totalPages,
-        hasPreviousPage: request.page > 1
-      },
-      success: true,
-      message: `Encontrados ${totalItems} usuários`,
-      filters: {
-        totalActiveUsers,
-        totalInactiveUsers,
-        totalAdminUsers
+  /**
+   * Exporta lista de usuários para CSV
+   */
+  exportUsers(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/users/export`, {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'text/csv'
       }
-    };
+    }).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  getAllRoles(): Observable<Role[]> {
-    return of([...this.availableRoles]).pipe(delay(300));
+  /**
+   * Importa usuários a partir de arquivo CSV
+   */
+  importUsers(file: File): Observable<{
+    success: number;
+    errors: Array<{ row: number; error: string }>;
+  }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<any>(`${this.apiUrl}/users/import`, formData)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  createUser(userData: Partial<User>): Observable<{ success: boolean; message: string; data?: User }> {
-    const newUser: User = {
-      id: Math.max(...this.mockUsers.map(u => u.id)) + 1,
-      name: userData.name!,
-      email: userData.email!,
-      roleId: userData.roleId,
-      role: userData.roleId ? this.availableRoles.find(r => r.id === userData.roleId) : undefined,
-      customPermissions: userData.customPermissions || [],
-      isActive: userData.isActive ?? true,
-      createdAt: new Date().toISOString(),
-      lastLogin: undefined
-    };
+  /**
+   * Tratamento centralizado de erros
+   */
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Ocorreu um erro desconhecido';
 
-    this.mockUsers.push(newUser);
-    
-    return of({
-      success: true,
-      message: 'Usuário criado com sucesso!',
-      data: newUser
-    }).pipe(delay(400));
-  }
+    if (error.error instanceof ErrorEvent) {
+      // Erro do cliente
+      errorMessage = `Erro: ${error.error.message}`;
+    } else {
+      // Erro do servidor
+      switch (error.status) {
+        case 400:
+          errorMessage = 'Dados inválidos fornecidos';
+          break;
+        case 401:
+          errorMessage = 'Não autorizado para esta operação';
+          break;
+        case 403:
+          errorMessage = 'Acesso negado';
+          break;
+        case 404:
+          errorMessage = 'Usuário não encontrado';
+          break;
+        case 409:
+          errorMessage = 'Conflito - Email já está em uso';
+          break;
+        case 500:
+          errorMessage = 'Erro interno do servidor';
+          break;
+        default:
+          errorMessage = `Erro ${error.status}: ${error.message}`;
+      }
 
-  updateUser(userId: number, userData: Partial<User>): Observable<{ success: boolean; message: string; data?: User }> {
-    const userIndex = this.mockUsers.findIndex(u => u.id === userId);
-    
-    if (userIndex === -1) {
-      return of({
-        success: false,
-        message: 'Usuário não encontrado!'
-      }).pipe(delay(400));
+      if (error.error?.message) {
+        errorMessage = error.error.message;
+      }
     }
 
-    this.mockUsers[userIndex] = {
-      ...this.mockUsers[userIndex],
-      ...userData,
-      role: userData.roleId ? this.availableRoles.find(r => r.id === userData.roleId) : undefined
-    };
-
-    return of({
-      success: true,
-      message: 'Usuário atualizado com sucesso!',
-      data: this.mockUsers[userIndex]
-    }).pipe(delay(400));
-  }
-
-  deleteUser(userId: number): Observable<{ success: boolean; message: string }> {
-    const userIndex = this.mockUsers.findIndex(u => u.id === userId);
-    
-    if (userIndex === -1) {
-      return of({
-        success: false,
-        message: 'Usuário não encontrado!'
-      }).pipe(delay(400));
-    }
-
-    const user = this.mockUsers[userIndex];
-    this.mockUsers.splice(userIndex, 1);
-
-    return of({
-      success: true,
-      message: `Usuário "${user.name}" excluído com sucesso!`
-    }).pipe(delay(400));
-  }
-
-  toggleUserStatus(userId: number): Observable<{ success: boolean; message: string; data?: User }> {
-    const userIndex = this.mockUsers.findIndex(u => u.id === userId);
-    
-    if (userIndex === -1) {
-      return of({
-        success: false,
-        message: 'Usuário não encontrado!'
-      }).pipe(delay(400));
-    }
-
-    this.mockUsers[userIndex].isActive = !this.mockUsers[userIndex].isActive;
-    const statusText = this.mockUsers[userIndex].isActive ? 'ativado' : 'desativado';
-
-    return of({
-      success: true,
-      message: `Usuário ${statusText} com sucesso!`,
-      data: this.mockUsers[userIndex]
-    }).pipe(delay(400));
+    console.error('UserManagementService Error:', errorMessage, error);
+    return throwError(() => new Error(errorMessage));
   }
 }

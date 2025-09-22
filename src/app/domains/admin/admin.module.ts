@@ -11,9 +11,23 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDividerModule } from '@angular/material/divider';
+
+// Quill Editor
+import { QuillModule } from 'ngx-quill';
 
 // Feature Components
 import { ToolBarComponent } from '../../features/tool-bar.component/tool-bar.component';
+
+// Guards
+import { PermissionGuard } from '../../services/authentication/permission.guard';
 
 // Components
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
@@ -22,8 +36,16 @@ import { UserPermissionsModalComponent } from './components/user-permissions-mod
 import { UserManagementComponent } from './components/user-management/user-management.component';
 
 const routes: Routes = [
-  { path: 'administracao', component: AdminDashboardComponent },
-  { path: 'administracao/usuarios', component: UserManagementComponent }
+  {
+    path: 'administracao',
+    component: AdminDashboardComponent
+  },
+  {
+    path: 'administracao/usuarios',
+    component: UserManagementComponent,
+    canActivate: [PermissionGuard],
+    data: { role: 'Administrador' }
+  }
 ];
 
 @NgModule({
@@ -47,7 +69,18 @@ const routes: Routes = [
     MatSelectModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
-    
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatIconModule,
+    MatMenuModule,
+    MatChipsModule,
+    MatSnackBarModule,
+    MatDividerModule,
+
+    // Quill Editor
+    QuillModule.forRoot(),
+
     // Feature Components
     ToolBarComponent
   ]

@@ -1,7 +1,9 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { User, Role, Permission } from '../../../../types';
+import { User } from '../../../../types/user.types';
+import { Role, Permission } from '../../../../types/base.types';
+import { UserManagementService } from '../../../../services/user-management.service';
 
 export interface UserPermissionsModalData {
   user?: User;
@@ -30,18 +32,19 @@ export class UserPermissionsModalComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<UserPermissionsModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: UserPermissionsModalData
+    @Inject(MAT_DIALOG_DATA) public data: UserPermissionsModalData,
+    private userManagementService: UserManagementService
   ) {
     this.isEditMode = !!data?.user;
-    this.availableRoles = data?.availableRoles || this.getDefaultRoles();
-    this.availablePermissions = data?.availablePermissions || this.getDefaultPermissions();
-    this.selectedPermissions = data?.user?.customPermissions || [];
+    this.availableRoles = data?.availableRoles || [];
+    this.availablePermissions = data?.availablePermissions || [];
+    this.selectedPermissions = data?.user?.permissions || [];
 
     this.userPermissionsForm = this.fb.group({
       userId: [data?.user?.id || null],
       name: [data?.user?.name || '', [Validators.required, Validators.minLength(2)]],
       email: [data?.user?.email || '', [Validators.required, Validators.email]],
-      roleId: [data?.user?.roleId || null],
+      roleId: [data?.user?.role?.id || null],
       selectedPermissionToAdd: [null],
       searchTerm: [''],
       isActive: [data?.user?.isActive ?? true]
@@ -50,7 +53,65 @@ export class UserPermissionsModalComponent implements OnInit {
     this.updateFilteredPermissions();
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    console.log('🔥 UserPermissionsModal: Iniciando...');
+    await this.loadModalData();
+  }
+
+  private async loadModalData(): Promise<void> {
+    try {
+      console.log('📡 UserPermissionsModal: Carregando dados do modal...');
+
+      // Se não temos dados passados, carregamos da API
+      if (this.availableRoles.length === 0) {
+        console.log('📡 UserPermissionsModal: Carregando roles da API...');
+        const rolesObservable = await this.userManagementService.getAvailableRoles();
+        rolesObservable.subscribe({
+          next: (roles) => {
+            console.log('✅ UserPermissionsModal: Roles carregadas:', roles);
+            this.availableRoles = roles.map(role => ({
+              id: role.id,
+              name: role.name,
+              description: role.description,
+              permissions: [],
+              isActive: true,
+              createdAt: new Date().toISOString()
+            }));
+          },
+          error: (error) => {
+            console.error('❌ UserPermissionsModal: Erro ao carregar roles:', error);
+          }
+        });
+      }
+
+      if (this.availablePermissions.length === 0) {
+        console.log('📡 UserPermissionsModal: Carregando permissões da API...');
+        const permissionsObservable = await this.userManagementService.getAvailablePermissions();
+        permissionsObservable.subscribe({
+          next: (permissions) => {
+            console.log('✅ UserPermissionsModal: Permissões carregadas:', permissions);
+            this.availablePermissions = permissions.map(permission => ({
+              id: permission.id,
+              name: permission.name,
+              code: permission.name,
+              module: 'admin',
+              action: 'access',
+              resource: 'general',
+              description: permission.description
+            }));
+            this.updateFilteredPermissions();
+          },
+          error: (error) => {
+            console.error('❌ UserPermissionsModal: Erro ao carregar permissões:', error);
+          }
+        });
+      } else {
+        this.updateFilteredPermissions();
+      }
+
+    } catch (error) {
+      console.error('❌ UserPermissionsModal: Erro ao carregar dados do modal:', error);
+    }
   }
 
   getDefaultRoles(): Role[] {
@@ -196,10 +257,80 @@ export class UserPermissionsModalComponent implements OnInit {
     return permission.id;
   }
 
-  onRoleChange(): void {
+  async onRoleChange(): Promise<void> {
+    console.log('🔄 UserPermissionsModal: onRoleChange chamado');
     const roleId = this.userPermissionsForm.get('roleId')?.value;
+    console.log('🔄 UserPermissionsModal: roleId selecionado:', roleId);
+
     if (roleId) {
-      // Se uma role foi selecionada, limpar permissões customizadas e pesquisa
+      // Converter roleId para number para garantir a comparação correta
+      const roleIdNumber = typeof roleId === 'string' ? parseInt(roleId, 10) : roleId;
+      console.log('🔄 UserPermissionsModal: roleId original:', roleId, 'tipo:', typeof roleId);
+      console.log('🔄 UserPermissionsModal: roleId convertido:', roleIdNumber, 'tipo:', typeof roleIdNumber);
+
+      // Se uma role foi selecionada, carregar as permissões da role
+      const selectedRole = this.availableRoles.find(role => role.id === roleIdNumber);
+      console.log('🔄 UserPermissionsModal: role encontrada:', selectedRole);
+      console.log('🔄 UserPermissionsModal: availableRoles:', this.availableRoles);
+
+      if (selectedRole) {
+        try {
+          console.log('🔄 UserPermissionsModal: Buscando permissões para role ID:', roleIdNumber);
+          // Buscar permissões da role selecionada
+          const rolePermissionsObservable = await this.userManagementService.getRolePermissions(roleIdNumber);
+          console.log('🔄 UserPermissionsModal: Observable obtido:', rolePermissionsObservable);
+
+          rolePermissionsObservable.subscribe({
+            next: (permissions: any[]) => {
+              console.log('✅ UserPermissionsModal: Permissões da role recebidas:', permissions);
+              console.log('✅ UserPermissionsModal: Tipo das permissões:', typeof permissions);
+              console.log('✅ UserPermissionsModal: É array?', Array.isArray(permissions));
+              console.log('✅ UserPermissionsModal: Quantidade:', permissions?.length);
+
+              if (permissions && Array.isArray(permissions) && permissions.length > 0) {
+                // Mapear do formato da API para o formato esperado pelo frontend
+                this.selectedPermissions = permissions.map((p: any) => {
+                  console.log('👤 UserPermissionsModal: Mapeando permissão:', p);
+                  return {
+                    id: p.Id || p.id,
+                    name: p.Name || p.name,
+                    code: p.Name || p.name,
+                    module: 'general',
+                    action: 'access',
+                    resource: 'general',
+                    description: p.Description || p.description || p.Name || p.name
+                  };
+                });
+                console.log('✅ UserPermissionsModal: selectedPermissions atualizado:', this.selectedPermissions);
+              } else {
+                console.log('⚠️ UserPermissionsModal: Nenhuma permissão recebida ou array vazio');
+                this.selectedPermissions = [];
+              }
+
+              this.clearSearch();
+              this.updateFilteredPermissions();
+            },
+            error: (error: any) => {
+              console.error('Erro ao carregar permissões da role:', error);
+              // Se não conseguir carregar, apenas limpa as permissões
+              this.selectedPermissions = [];
+              this.clearSearch();
+            }
+          });
+        } catch (error) {
+          console.error('❌ UserPermissionsModal: Erro ao buscar permissões da role:', error);
+          // Se não conseguir carregar, apenas limpa as permissões
+          this.selectedPermissions = [];
+          this.clearSearch();
+        }
+      } else {
+        console.log('❌ UserPermissionsModal: Role não encontrada no availableRoles');
+        this.selectedPermissions = [];
+        this.clearSearch();
+      }
+    } else {
+      // Se nenhuma role foi selecionada, limpar permissões
+      console.log('🔄 UserPermissionsModal: Nenhuma role selecionada, limpando permissões');
       this.selectedPermissions = [];
       this.clearSearch();
     }
@@ -219,26 +350,84 @@ export class UserPermissionsModalComponent implements OnInit {
 
       const formValue = this.userPermissionsForm.value;
 
-      const userPermissions = {
-        userId: formValue.userId,
-        name: formValue.name,
-        email: formValue.email,
-        roleId: formValue.roleId,
-        customPermissions: this.selectedPermissions.length > 0 ? this.selectedPermissions : undefined,
-        isActive: formValue.isActive
-      };
+      // Implementar operação real baseada no modo
+      if (this.isEditMode) {
+        // Editar usuário existente - formato para UpdateUserPermissionsDto
+        const updateDto = {
+          UserId: formValue.userId,
+          Name: formValue.name,
+          Email: formValue.email,
+          RoleId: formValue.roleId,
+          CustomPermissions: this.selectedPermissions.map(p => ({
+            id: p.id,
+            Code: p.code || p.name,
+            Name: p.name,
+            Module: p.module,
+            Description: p.description || p.name
+          })),
+          IsActive: formValue.isActive
+        };
 
-      // Simular operação assíncrona
-      setTimeout(() => {
-        this.isLoading = false;
-        this.dialogRef.close({ 
-          success: true, 
-          data: userPermissions,
-          message: this.isEditMode ? 
-            'Permissões do usuário atualizadas com sucesso!' : 
-            'Usuário criado com permissões definidas com sucesso!'
+        console.log('✏️ UserPermissionsModal: Editando usuário:', updateDto);
+        this.userManagementService.updateUserPermissions(updateDto).then(observable => {
+          observable.subscribe({
+          next: (result) => {
+            console.log('✅ UserPermissionsModal: Usuário editado com sucesso:', result);
+            this.isLoading = false;
+            this.dialogRef.close({
+              success: true,
+              data: updateDto,
+              message: 'Permissões do usuário atualizadas com sucesso!'
+            });
+          },
+          error: (error) => {
+            console.error('❌ UserPermissionsModal: Erro ao editar usuário:', error);
+            this.isLoading = false;
+            this.dialogRef.close({
+              success: false,
+              message: 'Erro ao atualizar permissões do usuário: ' + (error.message || 'Erro desconhecido')
+            });
+          }
+          });
+        }).catch(error => {
+          console.error('❌ UserPermissionsModal: Erro ao editar usuário:', error);
+          this.isLoading = false;
+          this.dialogRef.close({
+            success: false,
+            message: 'Erro ao atualizar permissões do usuário: ' + (error.message || 'Erro desconhecido')
+          });
         });
-      }, 1500);
+      } else {
+        // Criar novo usuário - formato para Partial<User>
+        const newUser = {
+          name: formValue.name,
+          email: formValue.email,
+          roleId: formValue.roleId,
+          permissions: this.selectedPermissions,
+          isActive: formValue.isActive
+        };
+
+        console.log('🆕 UserPermissionsModal: Criando usuário:', newUser);
+        this.userManagementService.createUser(newUser).subscribe({
+          next: (result) => {
+            console.log('✅ UserPermissionsModal: Usuário criado com sucesso:', result);
+            this.isLoading = false;
+            this.dialogRef.close({
+              success: true,
+              data: newUser,
+              message: 'Usuário criado com permissões definidas com sucesso!'
+            });
+          },
+          error: (error) => {
+            console.error('❌ UserPermissionsModal: Erro ao criar usuário:', error);
+            this.isLoading = false;
+            this.dialogRef.close({
+              success: false,
+              message: 'Erro ao criar usuário: ' + (error.message || 'Erro desconhecido')
+            });
+          }
+        });
+      }
     } else {
       this.markFormGroupTouched();
     }

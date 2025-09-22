@@ -29,7 +29,8 @@
       "default",
       {
         "ignore": [
-          "-webkit-font-feature-settings"
+          "-webkit-font-feature-settings",
+          "backdrop-filter"
         ]
       }
     ]

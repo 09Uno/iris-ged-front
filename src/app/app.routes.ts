@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { MsalGuard } from '@azure/msal-angular';
 import { EditorHtmlComponent } from './features/editor-html/editor-html.component';
+import { ForbiddenComponent } from './domains/shared/components/forbidden/forbidden.component';
+import { PermissionGuard } from './services/authentication/permission.guard';
 
 export const routes: Routes = [
   // Redirecionamento inicial
@@ -34,9 +36,13 @@ export const routes: Routes = [
     path: '',
     loadChildren: () =>
       import('./domains/admin/admin.module').then(m => m.AdminModule),
-    canActivate: [MsalGuard]
+    canActivate: [ PermissionGuard],
+    data: { role: 'Administrador' }
   },
 
   // Editor independente (não está em módulo de domínio)
-  { path: 'edit-document', component: EditorHtmlComponent }
+  { path: 'edit-document', component: EditorHtmlComponent },
+
+  // Página de acesso negado
+  { path: 'forbidden', component: ForbiddenComponent }
 ];

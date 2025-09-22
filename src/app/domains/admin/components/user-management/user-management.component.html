@@ -1,189 +1,213 @@
-<!-- user-management.component.html -->
 <app-tool-bar [title]="'Gerenciamento de Usuários'" [isProfessional]="false" [isCorporative]="true">
 </app-tool-bar>
 
 <div class="user-management-container">
-  
-  <!-- Cabeçalho -->
-  <div class="management-header">
+  <!-- Header com título e ação principal -->
+  <div class="page-header">
     <div class="header-content">
-      <h4 class="management-title">
-        <span class="material-icons">people</span>
-        Gerenciamento de Usuários
-      </h4>
-      <button 
-        type="button" 
-        class="btn btn-primary create-user-btn"
-        (click)="createUser()"
-        [disabled]="isLoading">
-        <span class="material-icons">person_add</span>
-        Criar Usuário
-      </button>
+      <div class="title-section">
+        <h1 class="page-title">
+          <span class="material-icons">people</span>
+          Gerenciamento de Usuários
+        </h1>
+        <p class="page-subtitle">Gerencie usuários, roles e permissões do sistema</p>
+      </div>
+      <div class="actions-section">
+        <button type="button" class="btn btn-primary btn-create" (click)="createUser()" [disabled]="isLoading">
+          <span class="material-icons">person_add</span>
+          Criar Usuário
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Mensagens -->
-  <div *ngIf="messages.errorMessage" class="alert alert-danger message-sm">
-    <div [innerHTML]="messages.errorMessage"></div>
+  <div *ngIf="messages.errorMessage" class="alert alert-danger" style="margin-bottom: 15px;">
+    {{ messages.errorMessage }}
   </div>
-  <div *ngIf="messages.alertMessage" class="alert alert-warning message-sm">
-    <div [innerHTML]="messages.alertMessage"></div>
+  <div *ngIf="messages.alertMessage" class="alert alert-warning" style="margin-bottom: 15px;">
+    {{ messages.alertMessage }}
   </div>
-  <div *ngIf="messages.successMessage" class="alert alert-success message-sm">
-    <div [innerHTML]="messages.successMessage"></div>
+  <div *ngIf="messages.successMessage" class="alert alert-success" style="margin-bottom: 15px;">
+    {{ messages.successMessage }}
+  </div>
+
+  <!-- Estatísticas rápidas -->
+  <div class="stats-section" *ngIf="!isLoading && totalUsers > 0">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <span class="material-icons">people</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ totalUsers }}</div>
+          <div class="stat-label">Total de Usuários</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon active">
+          <span class="material-icons">check_circle</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getActiveUsersCount() }}</div>
+          <div class="stat-label">Usuários Ativos</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon inactive">
+          <span class="material-icons">block</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getInactiveUsersCount() }}</div>
+          <div class="stat-label">Usuários Inativos</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon admin">
+          <span class="material-icons">admin_panel_settings</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ getAdminUsersCount() }}</div>
+          <div class="stat-label">Administradores</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Filtros e Busca -->
   <div class="filters-section">
-    <div class="row">
-      <div class="col-md-6">
-        <div class="search-container">
-          <label for="userSearch" class="form-label-expanded">Buscar Usuários:</label>
-          <div class="search-input-container">
-            <input 
-              type="text" 
-              class="form-control form-control-expanded search-input"
-              id="userSearch"
-              #searchInput
-              (input)="onSearchChange(searchInput.value)"
-              [value]="searchTerm"
-              placeholder="Digite nome, email ou role..."
-              [disabled]="isLoading">
-            <button 
-              type="button" 
-              class="btn btn-clear-search"
-              (click)="clearFilters(); searchInput.value = ''"
-              *ngIf="searchTerm || selectedRole"
-              [disabled]="isLoading"
-              title="Limpar filtros">
-              <span class="material-icons">clear</span>
-            </button>
-            <span class="search-icon material-icons">search</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-4">
-        <div class="role-filter-container">
-          <label for="roleFilter" class="form-label-expanded">Filtrar por Role:</label>
-          <select 
-            class="form-control form-control-expanded"
-            id="roleFilter"
-            (change)="onRoleFilterChange($any($event.target).value)"
-            [value]="selectedRole"
+    <div class="filters-container">
+      <div class="search-box">
+        <div class="search-input-group">
+          <span class="material-icons search-icon">search</span>
+          <input
+            type="text"
+            class="search-input"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Buscar por nome ou email..."
             [disabled]="isLoading">
-            <option value="">Todas as roles</option>
-            <option [value]="role.id" *ngFor="let role of availableRoles">{{ role.name }}</option>
-            <option value="custom">Permissões Específicas</option>
-          </select>
+          <button
+            *ngIf="searchTerm"
+            class="clear-search-btn"
+            (click)="searchTerm = ''; onSearchChange()"
+            type="button">
+            <span class="material-icons">close</span>
+          </button>
         </div>
       </div>
-
-      <div class="col-md-2">
-        <div class="results-info">
-          <span class="results-count">
-            {{ getPaginationInfo() }}
-          </span>
+      <div class="filter-controls">
+        <div class="page-size-selector">
+          <label>Itens por página:</label>
+          <select class="form-control" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+            <option value="6">6</option>
+            <option value="12">12</option>
+            <option value="24">24</option>
+            <option value="50">50</option>
+          </select>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Lista de Usuários -->
-  <div class="users-list-container">
-    
-    <!-- Estado de loading -->
-    <div *ngIf="isLoading" class="loading-state">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Carregando...</span>
-      </div>
-      <span>Carregando usuários...</span>
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center" style="padding: 40px;">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
     </div>
+    <p>Carregando usuários...</p>
+  </div>
 
-    <!-- Lista vazia -->
-    <div *ngIf="!isLoading && totalUsers === 0" class="empty-state">
-      <span class="material-icons">people_outline</span>
-      <h6>{{ searchTerm || selectedRole ? 'Nenhum usuário encontrado' : 'Nenhum usuário cadastrado' }}</h6>
-      <p class="text-muted">
-        {{ searchTerm || selectedRole ? 
-           'Tente ajustar os filtros de busca ou criar um novo usuário.' : 
-           'Comece criando o primeiro usuário do sistema.' }}
-      </p>
-      <button 
-        type="button" 
-        class="btn btn-outline-primary"
-        (click)="createUser()">
-        <span class="material-icons">person_add</span>
-        Criar Primeiro Usuário
-      </button>
-    </div>
+  <!-- Lista vazia -->
+  <div *ngIf="!isLoading && totalUsers === 0" class="text-center" style="padding: 40px;">
+    <span class="material-icons" style="font-size: 48px; color: #ccc;">people_outline</span>
+    <h6>Nenhum usuário encontrado</h6>
+    <p class="text-muted">
+      {{ searchTerm ? 'Tente ajustar os filtros de busca ou criar um novo usuário.' : 'Comece criando o primeiro usuário do sistema.' }}
+    </p>
+    <button type="button" class="btn btn-outline-primary" (click)="createUser()">
+      <span class="material-icons">person_add</span>
+      Criar Primeiro Usuário
+    </button>
+  </div>
 
-    <!-- Lista de usuários -->
-    <div *ngIf="!isLoading && totalUsers > 0" class="users-grid">
-      
-      <div *ngFor="let user of currentData; trackBy: trackByUserId" class="user-card">
-        
+  <!-- Lista de usuários -->
+  <div *ngIf="!isLoading && totalUsers > 0" class="users-grid">
+    <div *ngFor="let user of currentData; trackBy: trackByUserId" class="user-card-wrapper">
+      <div class="user-card" [class.inactive]="!user.isActive">
         <!-- Status Badge -->
-        <div class="user-status-badge" [class]="getStatusBadgeClass(user.isActive)">
+        <div class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+          <span class="material-icons">{{ user.isActive ? 'check_circle' : 'block' }}</span>
           {{ getStatusText(user.isActive) }}
         </div>
 
-        <!-- Informações do usuário -->
-        <div class="user-info">
+        <!-- Avatar e informações principais -->
+        <div class="user-header">
           <div class="user-avatar">
             <span class="material-icons">person</span>
           </div>
-          
-          <div class="user-details">
-            <h6 class="user-name">{{ user.name }}</h6>
+          <div class="user-info">
+            <h3 class="user-name">{{ user.name }}</h3>
             <p class="user-email">{{ user.email }}</p>
-            <div class="user-permissions">
-              <span class="material-icons">security</span>
-              <span>{{ getUserPermissionsText(user) }}</span>
-            </div>
           </div>
         </div>
 
-        <!-- Informações adicionais -->
-        <div class="user-metadata">
-          <div class="metadata-item">
-            <span class="material-icons">schedule</span>
-            <span class="metadata-label">Criado:</span>
-            <span class="metadata-value">{{ formatDate(user.createdAt) }}</span>
+        <!-- Role e permissões -->
+        <div class="user-details">
+          <div class="role-info" *ngIf="user.role">
+            <span class="material-icons">admin_panel_settings</span>
+            <div class="role-content">
+              <div class="role-name">{{ user.role.name }}</div>
+              <div class="role-description">{{ user.role.description }}</div>
+            </div>
           </div>
-          <div class="metadata-item" *ngIf="user.lastLogin">
-            <span class="material-icons">login</span>
-            <span class="metadata-label">Último acesso:</span>
-            <span class="metadata-value">{{ formatDate(user.lastLogin) }}</span>
+
+          <div class="permissions-info">
+            <span class="material-icons">security</span>
+            <div class="permissions-text">
+              {{ getUserPermissionsText(user) }}
+            </div>
+          </div>
+
+          <div class="user-meta">
+            <div class="meta-item" *ngIf="user.createdAt">
+              <span class="material-icons">schedule</span>
+              <span>Criado em {{ formatDate(user.createdAt) }}</span>
+            </div>
+            <div class="meta-item" *ngIf="user.lastLogin">
+              <span class="material-icons">login</span>
+              <span>Último acesso: {{ formatDate(user.lastLogin) }}</span>
+            </div>
           </div>
         </div>
 
         <!-- Ações -->
         <div class="user-actions">
-          <button 
-            type="button" 
-            class="btn btn-outline-primary btn-sm"
+          <button
+            type="button"
+            class="action-btn primary"
             (click)="editUser(user)"
             [disabled]="isLoading"
             title="Editar usuário">
             <span class="material-icons">edit</span>
             Editar
           </button>
-          
-          <button 
-            type="button" 
-            class="btn btn-sm"
-            [class]="user.isActive ? 'btn-outline-warning' : 'btn-outline-success'"
+
+          <button
+            type="button"
+            class="action-btn"
+            [class.warning]="user.isActive"
+            [class.success]="!user.isActive"
             (click)="toggleUserStatus(user)"
             [disabled]="isLoading"
             [title]="user.isActive ? 'Desativar usuário' : 'Ativar usuário'">
             <span class="material-icons">{{ user.isActive ? 'block' : 'check_circle' }}</span>
             {{ user.isActive ? 'Desativar' : 'Ativar' }}
           </button>
-          
-          <button 
-            type="button" 
-            class="btn btn-outline-danger btn-sm"
+
+          <button
+            type="button"
+            class="action-btn danger"
             (click)="deleteUser(user)"
             [disabled]="isLoading"
             title="Excluir usuário">
@@ -191,80 +215,38 @@
             Excluir
           </button>
         </div>
-
       </div>
     </div>
-
   </div>
 
-  <!-- Controles de Paginação -->
-  <div class="pagination-container" *ngIf="!isLoading && totalUsers > 0 && totalPages > 1">
-    <div class="pagination-controls">
-      
-      <!-- Botão Anterior -->
-      <button 
-        type="button" 
-        class="btn btn-outline-secondary btn-sm pagination-btn"
-        (click)="previousPage()"
-        [disabled]="!hasPreviousPage"
-        title="Página anterior">
-        <span class="material-icons">chevron_left</span>
-        Anterior
-      </button>
-
-      <!-- Números das páginas -->
-      <div class="page-numbers">
-        <button 
-          type="button"
-          *ngFor="let page of getPageNumbers()"
-          class="btn btn-sm page-number-btn"
-          [class.active]="page === currentPage"
-          [class.btn-primary]="page === currentPage"
-          [class.btn-outline-secondary]="page !== currentPage"
-          (click)="goToPage(page)"
-          [title]="'Ir para página ' + page">
-          {{ page }}
-        </button>
-      </div>
-
-      <!-- Botão Próximo -->
-      <button 
-        type="button" 
-        class="btn btn-outline-secondary btn-sm pagination-btn"
-        (click)="nextPage()"
-        [disabled]="!hasNextPage"
-        title="Próxima página">
-        Próximo
-        <span class="material-icons">chevron_right</span>
-      </button>
-
-    </div>
-
-    <!-- Informações da paginação -->
+  <!-- Paginação -->
+  <div *ngIf="!isLoading && totalUsers > 0 && totalPages > 1" class="pagination-section">
     <div class="pagination-info">
-      <span class="pagination-text">
-        Página {{ currentPage }} de {{ totalPages }} 
-        <span class="text-muted">({{ totalUsers }} usuários no total)</span>
-      </span>
+      <span>Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ Math.min(currentPage * pageSize, totalUsers) }} de {{ totalUsers }} usuários</span>
     </div>
-  </div>
+    <nav class="pagination-nav">
+      <ul class="pagination">
+        <li class="page-item" [class.disabled]="!hasPreviousPage">
+          <button class="page-link" (click)="previousPage()" [disabled]="!hasPreviousPage">
+            <span class="material-icons">chevron_left</span>
+            Anterior
+          </button>
+        </li>
 
-  <!-- Informações de rodapé -->
-  <div class="management-footer" *ngIf="!isLoading && totalUsers > 0">
-    <div class="footer-stats">
-      <div class="stat-item">
-        <span class="material-icons">people</span>
-        <span>{{ getActiveUsersCount() }} usuários ativos</span>
-      </div>
-      <div class="stat-item">
-        <span class="material-icons">block</span>
-        <span>{{ getInactiveUsersCount() }} usuários inativos</span>
-      </div>
-      <div class="stat-item">
-        <span class="material-icons">admin_panel_settings</span>
-        <span>{{ getAdminUsersCount() }} administradores</span>
-      </div>
-    </div>
+        <li *ngFor="let page of getPageNumbers()"
+            class="page-item"
+            [class.active]="page === currentPage">
+          <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+        </li>
+
+        <li class="page-item" [class.disabled]="!hasNextPage">
+          <button class="page-link" (click)="nextPage()" [disabled]="!hasNextPage">
+            Próxima
+            <span class="material-icons">chevron_right</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
   </div>
 
 </div>

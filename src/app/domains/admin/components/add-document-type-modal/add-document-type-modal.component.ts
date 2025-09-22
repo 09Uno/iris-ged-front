@@ -14,6 +14,26 @@ export class AddDocumentTypeModalComponent implements OnInit {
   documentTypeForm: FormGroup;
   isLoading = false;
 
+  // Configuração do Quill Editor
+  quillModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ 'header': 1 }, { 'header': 2 }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'script': 'sub'}, { 'script': 'super' }],
+      [{ 'indent': '-1'}, { 'indent': '+1' }],
+      [{ 'direction': 'rtl' }],
+      [{ 'size': ['small', false, 'large', 'huge'] }],
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'font': [] }],
+      [{ 'align': [] }],
+      ['clean'],
+      ['link', 'image']
+    ]
+  };
+
   categories = [
     { value: 'administrativo', label: 'Administrativo' },
     { value: 'juridico', label: 'Jurídico' },
@@ -21,6 +41,11 @@ export class AddDocumentTypeModalComponent implements OnInit {
     { value: 'financeiro', label: 'Financeiro' },
     { value: 'recursos-humanos', label: 'Recursos Humanos' },
     { value: 'outros', label: 'Outros' }
+  ];
+
+  documentFormats = [
+    { value: 'file', label: 'Arquivo (PDF, Word, Excel, etc.)', icon: 'description' },
+    { value: 'html', label: 'HTML (Input para inserir código HTML)', icon: 'code' }
   ];
 
 
@@ -33,8 +58,10 @@ export class AddDocumentTypeModalComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       code: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       category: ['', [Validators.required]],
+      format: ['file'], // Default para arquivo, não obrigatório
       isActive: [true],
-      prefix: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(10)]]
+      prefix: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(10)]],
+      htmlContent: [''] // Campo para conteúdo HTML
     });
   }
 
@@ -121,5 +148,9 @@ export class AddDocumentTypeModalComponent implements OnInit {
   hasFieldError(fieldName: string): boolean {
     const field = this.documentTypeForm.get(fieldName);
     return !!(field?.errors && field.touched);
+  }
+
+  isHtmlFormat(): boolean {
+    return this.documentTypeForm.get('format')?.value === 'html';
   }
 }

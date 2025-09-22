@@ -386,6 +386,86 @@ select.form-control-expanded {
   }
 }
 
+/* Format Selection */
+.format-selection {
+  margin-top: 10px;
+}
+
+.format-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.format-option {
+  display: flex;
+  align-items: flex-start;
+}
+
+.format-option input[type="radio"] {
+  margin-right: 12px;
+  margin-top: 6px;
+  accent-color: #094c8c;
+}
+
+.format-label {
+  display: flex;
+  align-items: flex-start;
+  padding: 15px;
+  background-color: white;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  margin: 0;
+}
+
+.format-label:hover {
+  border-color: #094c8c;
+  background-color: #f8f9fa;
+}
+
+.format-option input[type="radio"]:checked + .format-label {
+  border-color: #094c8c;
+  background-color: rgba(9, 76, 140, 0.05);
+  box-shadow: 0 2px 8px rgba(9, 76, 140, 0.15);
+}
+
+.format-icon {
+  margin-right: 15px;
+  color: #094c8c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(9, 76, 140, 0.1);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.format-icon .material-icons {
+  font-size: 20px;
+}
+
+.format-info {
+  flex: 1;
+}
+
+.format-info strong {
+  display: block;
+  color: #495057;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.format-info small {
+  color: #6c757d;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
 /* Material Icons */
 .material-icons {
   font-family: 'Material Icons';

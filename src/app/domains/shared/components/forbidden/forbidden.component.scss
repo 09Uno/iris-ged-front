@@ -1,0 +1,310 @@
+/* forbidden.component.scss */
+
+/* Estilos base copiados do admin-dashboard */
+.main {
+  padding: 4px 6px;
+  background-color: #f1f4f9;
+  height: calc(100vh - 140px);
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  margin-top: 0;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.form-card {
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(9, 76, 140, 0.1);
+  border: 1px solid #e1e5e9;
+  margin-bottom: 5px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.form-body {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.form-section-expanded {
+  margin-bottom: 20px;
+  padding: 15px 20px;
+  background: #fafbfc;
+  border-radius: 6px;
+  border-left: 4px solid #094c8c;
+}
+
+.section-title {
+  color: #094c8c;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #ba9705;
+}
+
+.admin-card {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(9, 76, 140, 0.1);
+  min-height: 100px;
+}
+
+.admin-card:hover:not(.disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(9, 76, 140, 0.2);
+  border-color: #094c8c;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8f3ff 100%);
+}
+
+.admin-card-icon {
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #094c8c 0%, #057db3 100%);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.admin-card-icon .material-icons {
+  color: white;
+  font-size: 28px;
+}
+
+.admin-card-content {
+  flex: 1;
+  margin-right: 15px;
+}
+
+.admin-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #094c8c;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.admin-card-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.admin-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(9, 76, 140, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.admin-card:hover:not(.disabled) .admin-card-action {
+  background-color: rgba(9, 76, 140, 0.2);
+  transform: scale(1.1);
+}
+
+.admin-card-action .material-icons {
+  color: #094c8c;
+  font-size: 20px;
+}
+
+.info-panel-expanded {
+  display: flex;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #e8f3ff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(9, 76, 140, 0.2);
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 6px rgba(9, 76, 140, 0.1);
+}
+
+.info-icon {
+  margin-right: 15px;
+  color: #094c8c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(9, 76, 140, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.info-icon .material-icons {
+  font-size: 24px;
+}
+
+.info-content {
+  font-size: 0.9rem;
+  color: #094c8c;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.info-content strong {
+  color: #094c8c;
+  font-weight: 600;
+}
+
+.mt-4 {
+  margin-top: 1.5rem !important;
+}
+
+/* Container principal da p�gina de acesso negado */
+.forbidden-container {
+  text-align: center;
+  padding: 40px 20px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* �cone principal de acesso negado */
+.forbidden-icon {
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-radius: 50%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.forbidden-icon .material-icons {
+  color: white;
+  font-size: 60px;
+}
+
+/* Conte�do de texto */
+.forbidden-content {
+  margin-bottom: 40px;
+  max-width: 600px;
+}
+
+.forbidden-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #094c8c;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.forbidden-message {
+  font-size: 1.2rem;
+  color: #6c757d;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.forbidden-submessage {
+  font-size: 1rem;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Container de a��es */
+.forbidden-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 800px;
+  width: 100%;
+}
+
+/* Customizar bot�es de a��o para parecerem com admin-cards */
+.forbidden-actions .admin-card {
+  background: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .forbidden-container {
+    padding: 20px 10px;
+    min-height: 300px;
+  }
+
+  .forbidden-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+  }
+
+  .forbidden-icon .material-icons {
+    font-size: 40px;
+  }
+
+  .forbidden-title {
+    font-size: 2rem;
+    margin-bottom: 15px;
+  }
+
+  .forbidden-message {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+  }
+
+  .forbidden-submessage {
+    font-size: 0.95rem;
+  }
+
+  .forbidden-actions {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .forbidden-content {
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .forbidden-title {
+    font-size: 1.8rem;
+  }
+
+  .forbidden-message {
+    font-size: 1rem;
+  }
+
+  .forbidden-submessage {
+    font-size: 0.9rem;
+  }
+}

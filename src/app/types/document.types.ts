@@ -68,6 +68,7 @@ export interface AdvancedSearchRequest {
   generatingAgency?: string;
   documentTypeId?: number;
   author?: string;
+  unitGenerated?: string;
 
   // Date Filters
   startDate?: string;
@@ -159,6 +160,7 @@ export interface DocumentType {
   isActive: boolean;
   createdAt: string;
   prefix: string;
+  htmlTemplate?: string; // Template HTML opcional para documentos editáveis
 }
 
 
