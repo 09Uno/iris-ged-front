@@ -61,13 +61,13 @@
 
     </div>
 
-    <!-- Categoria -->
+    <!-- Categoria e Classe Documental -->
     <div class="form-section-expanded">
       <h6 class="section-title">Categorização</h6>
-      
+
       <div class="mb-3">
         <label for="category" class="form-label-expanded required">Categoria:</label>
-        <select 
+        <select
           class="form-control form-control-expanded"
           [class.is-invalid]="hasFieldError('category')"
           id="category"
@@ -79,6 +79,34 @@
         <div class="invalid-feedback" *ngIf="hasFieldError('category')">
           {{ getFieldError('category') }}
         </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="classeDocumentalId" class="form-label-expanded">Classe Documental (e-ARQ Brasil):</label>
+        <select
+          class="form-control form-control-expanded"
+          id="classeDocumentalId"
+          formControlName="classeDocumentalId"
+          [disabled]="isLoading || isLoadingClasses">
+          <option [value]="null">Nenhuma classe associada</option>
+          <option [value]="docClass.id" *ngFor="let docClass of documentClasses">
+            {{ docClass.code }} - {{ docClass.fullTerm }}
+          </option>
+        </select>
+        <small class="text-muted">
+          Associe este tipo a uma classe do plano de classificação para gestão arquivística
+        </small>
+      </div>
+
+      <div class="mb-3">
+        <label for="description" class="form-label-expanded">Descrição:</label>
+        <textarea
+          class="form-control form-control-expanded"
+          id="description"
+          formControlName="description"
+          rows="3"
+          placeholder="Descreva o propósito e uso deste tipo de documento..."
+          [disabled]="isLoading"></textarea>
       </div>
     </div>
 

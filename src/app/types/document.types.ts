@@ -1,5 +1,55 @@
 import { Permission, Role, User } from "./base.types";
 
+// Enums
+export enum DestinacaoFinal {
+  EliminacaoImediata = 0,
+  GuardaPermanente = 1,
+  EliminacaoAposGuarda = 2
+}
+
+// Classes Documentais
+export interface DocumentClass {
+  id: number;
+  code: string;
+  fullTerm: string;
+  description?: string;
+  parentClassId?: number;
+  currentRetentionPeriod: number;
+  intermediateRetentionPeriod: number;
+  finalDisposition: DestinacaoFinal;
+  notes?: string;
+  active: boolean;
+  createdAt: string;
+  inactivatedAt?: string;
+}
+
+export interface CreateDocumentClassDto {
+  code: string;
+  fullTerm: string;
+  description?: string;
+  parentClassId?: number;
+  currentRetentionPeriod: number;
+  intermediateRetentionPeriod: number;
+  finalDisposition: DestinacaoFinal;
+  notes?: string;
+  createdByUserId: number;
+}
+
+export interface UpdateDocumentClassDto {
+  code: string;
+  description?: string;
+  parentClassId?: number;
+  currentRetentionPeriod: number;
+  intermediateRetentionPeriod: number;
+  finalDisposition: DestinacaoFinal;
+  notes?: string;
+}
+
+export interface DocumentClassHierarchy extends DocumentClass {
+  children?: DocumentClassHierarchy[];
+  level?: number;
+}
+
 export interface DocumentItem {
   Id: number | null;
   FileName: string;
@@ -36,6 +86,32 @@ export interface HtmlItemDocumentToEdit {
   htmlContent: string;
 }
 
+// Versionamento de Documentos
+export interface DocumentVersion {
+  id: number;
+  documentId: number;
+  versionNumber: number;
+  htmlContent: string;
+  createdAt: string;
+  createdBy: string;
+  createdByUserId: number;
+  changeDescription?: string;
+  fileSize?: number;
+  checksum?: string;
+}
+
+export interface CreateDocumentVersionDto {
+  documentId: number;
+  htmlContent: string;
+  changeDescription?: string;
+}
+
+export interface DocumentVersionListResponse {
+  versions: DocumentVersion[];
+  currentVersion: number;
+  totalVersions: number;
+}
+
 export interface NewDocumentDTO {
   name: string;
   documentDate: string;
@@ -65,36 +141,40 @@ export interface AdvancedSearchRequest {
   subject?: string;
 
   // Specific Filters
-  generatingAgency?: string;
   documentTypeId?: number;
-  author?: string;
-  unitGenerated?: string;
+  producer?: string;           // produtor
+  recipient?: string;          // destinatario
+  currentDepartment?: string;  // setor_atual
 
   // Date Filters
   startDate?: string;
   endDate?: string;
 
   // Protocol and Identifier Filters
-  process?: string; // Backend usa Process em vez de protocol
-  uniqueIdentifier?: string;
+  process?: string;            // identificador_processo (apenas)
+  uniqueIdentifier?: string;   // identificador_unico (exato)
 
   // Search Options
-  searchType?: string; // "documents" or "processes"
+  searchType?: string;         // "documents" or "processes"
   includeGenerated?: boolean;
   includeExternal?: boolean;
 
   // Status Filters
-  status?: string;
-  onlyPublic?: boolean;
-  onlyConfidential?: boolean;
+  status?: string;             // situacao
+  onlyPublic?: boolean;        // publico = 1
+  onlyConfidential?: boolean;  // confidencial = 1
+
+  // Additional Fields
+  keywords?: string;           // palavras_chave
+  notes?: string;              // observacoes
 
   // Pagination
   page?: number;
   pageSize?: number;
 
   // Sorting
-  orderBy?: string; // e.g. "data_criacao"
-  orderDirection?: string; // "ASC" or "DESC"
+  orderBy?: string;            // e.g. "data_criacao"
+  orderDirection?: string;     // "ASC" or "DESC"
 }
 
 export interface AdvancedSearchResponse {
@@ -160,7 +240,43 @@ export interface DocumentType {
   isActive: boolean;
   createdAt: string;
   prefix: string;
-  htmlTemplate?: string; // Template HTML opcional para documentos editáveis
+  classeDocumentalId?: number;
+  classeDocumentalCodigo?: string;
+  classeDocumentalDescricao?: string;
+  linkTemplate?: string;
+  htmlTemplateFileName?: string;
+  hasHtmlTemplate?: boolean;
+  supportsHtmlEditing?: boolean;
+  htmlTemplateContent?: string;
+}
+
+// DTO para criar tipo de documento
+export interface CreateDocumentTypeDto {
+  name: string;
+  code: string;
+  category: string;
+  description?: string;
+  prefix: string;
+  isActive: boolean;
+  classeDocumentalId?: number;
+  htmlTemplateContent?: string;
+  templateFileName?: string;
+  supportsHtmlEditing?: boolean;
+}
+
+// DTO para atualizar tipo de documento
+export interface UpdateDocumentTypeDto {
+  id: number;
+  name: string;
+  code: string;
+  category: string;
+  description?: string;
+  prefix: string;
+  isActive: boolean;
+  classeDocumentalId?: number;
+  htmlTemplateContent?: string;
+  templateFileName?: string;
+  supportsHtmlEditing?: boolean;
 }
 
 

@@ -225,8 +225,18 @@ export class DocumentManagerComponent implements OnInit {
     const searchTypeOrder: SearchType[] = ['protocol', 'identifier', 'document'];
     const currentIndex = searchTypeOrder.indexOf(this.searchType);
     this.searchType = searchTypeOrder[(currentIndex + 1) % searchTypeOrder.length];
-    this.clearSearchResults();
+    this.clearSearchFields();
   }
+
+  // Limpa apenas os campos de busca sem destruir a árvore
+  clearSearchFields(): void {
+    this.searchResults = [];
+    this.protocolSearch = '';
+    this.documentNameSearch = '';
+    this.documentIdentifier = '';
+  }
+
+  // Limpa completamente os resultados incluindo a árvore
   clearSearchResults(): void {
     this.searchResults = [];
     this.selectedProtocol = null;

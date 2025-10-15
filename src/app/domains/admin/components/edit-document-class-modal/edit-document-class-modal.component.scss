@@ -1,0 +1,48 @@
+@import '../add-document-class-modal/add-document-class-modal.component.scss';
+
+// Current Class Info
+.current-class-info {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+
+  .info-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .material-icons {
+      font-size: 32px;
+      color: #094c8c;
+    }
+
+    .info-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      strong {
+        font-size: 16px;
+        color: #333;
+      }
+
+      span {
+        font-size: 14px;
+        color: #666;
+      }
+    }
+  }
+}
+
+// Readonly Field
+.readonly-field {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}

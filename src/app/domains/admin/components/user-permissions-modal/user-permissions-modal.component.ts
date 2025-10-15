@@ -232,14 +232,36 @@ export class UserPermissionsModalComponent implements OnInit {
 
   addPermission(): void {
     const permissionId = this.userPermissionsForm.get('selectedPermissionToAdd')?.value;
+    console.log('➕ addPermission: permissionId selecionado:', permissionId);
+    console.log('➕ addPermission: tipo:', typeof permissionId);
+
     if (permissionId) {
-      const permission = this.availablePermissions.find(p => p.id === permissionId);
-      if (permission && !this.selectedPermissions.some(sp => sp.id === permission.id)) {
-        this.selectedPermissions.push(permission);
-        this.userPermissionsForm.get('selectedPermissionToAdd')?.setValue(null);
-        this.updateFilteredPermissions(); // Atualiza a lista filtrada
-        this.onCustomPermissionChange();
+      // Converter para number para garantir comparação correta
+      const permissionIdNumber = typeof permissionId === 'string' ? parseInt(permissionId, 10) : permissionId;
+      console.log('➕ addPermission: permissionIdNumber:', permissionIdNumber);
+      console.log('➕ addPermission: availablePermissions:', this.availablePermissions);
+
+      const permission = this.availablePermissions.find(p => p.id === permissionIdNumber);
+      console.log('➕ addPermission: permissão encontrada:', permission);
+
+      if (permission) {
+        const alreadySelected = this.selectedPermissions.some(sp => sp.id === permission.id);
+        console.log('➕ addPermission: já selecionada?', alreadySelected);
+
+        if (!alreadySelected) {
+          this.selectedPermissions.push(permission);
+          console.log('✅ addPermission: permissão adicionada!', this.selectedPermissions);
+          this.userPermissionsForm.get('selectedPermissionToAdd')?.setValue(null);
+          this.updateFilteredPermissions();
+          this.onCustomPermissionChange();
+        } else {
+          console.log('⚠️ addPermission: permissão já está na lista');
+        }
+      } else {
+        console.log('❌ addPermission: permissão não encontrada no availablePermissions');
       }
+    } else {
+      console.log('❌ addPermission: permissionId é nulo ou vazio');
     }
   }
 
@@ -250,7 +272,7 @@ export class UserPermissionsModalComponent implements OnInit {
   }
 
   getPermissionDisplayName(permission: Permission): string {
-    return `${this.getModuleDisplayName(permission.module)} - ${permission.name}`;
+    return `${this.getModuleDisplayName(permission.description!)} - ${permission.name}`;
   }
 
   trackByPermissionId(index: number, permission: Permission): number {
@@ -337,11 +359,8 @@ export class UserPermissionsModalComponent implements OnInit {
   }
 
   onCustomPermissionChange(): void {
-    const hasCustomPermissions = this.selectedPermissions.length > 0;
-    if (hasCustomPermissions) {
-      // Se permissões customizadas foram selecionadas, limpar role
-      this.userPermissionsForm.get('roleId')?.setValue(null);
-    }
+    // Permissões customizadas são independentes da role
+    // Não fazemos nada aqui - a role é mantida
   }
 
   onSubmit(): void {
@@ -353,11 +372,18 @@ export class UserPermissionsModalComponent implements OnInit {
       // Implementar operação real baseada no modo
       if (this.isEditMode) {
         // Editar usuário existente - formato para UpdateUserPermissionsDto
-        const updateDto = {
+        const roleId = formValue.roleId;
+        let roleIdNumber = null;
+
+        // Converter roleId para número apenas se tiver valor válido
+        if (roleId !== null && roleId !== undefined && roleId !== '') {
+          roleIdNumber = typeof roleId === 'string' ? parseInt(roleId, 10) : roleId;
+        }
+
+        const updateDto: any = {
           UserId: formValue.userId,
           Name: formValue.name,
           Email: formValue.email,
-          RoleId: formValue.roleId,
           CustomPermissions: this.selectedPermissions.map(p => ({
             id: p.id,
             Code: p.code || p.name,
@@ -368,7 +394,14 @@ export class UserPermissionsModalComponent implements OnInit {
           IsActive: formValue.isActive
         };
 
-        console.log('✏️ UserPermissionsModal: Editando usuário:', updateDto);
+        // Só adicionar RoleId se for um número válido
+        if (roleIdNumber !== null && !isNaN(roleIdNumber) && roleIdNumber > 0) {
+          updateDto.RoleId = roleIdNumber;
+        }
+
+        console.log('✏️ UserPermissionsModal: roleId original:', formValue.roleId);
+        console.log('✏️ UserPermissionsModal: roleIdNumber convertido:', roleIdNumber);
+        console.log('✏️ UserPermissionsModal: Payload completo sendo enviado:', JSON.stringify(updateDto, null, 2));
         this.userManagementService.updateUserPermissions(updateDto).then(observable => {
           observable.subscribe({
           next: (result) => {

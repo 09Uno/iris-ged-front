@@ -11,8 +11,11 @@ export class PermissionService {
   private currentUser$ = new BehaviorSubject<UserProfile | null>(null);
   private userPermissions: string[] = [];
   private userRole: Role | null = null;
+  private permissionsLoaded = false;
 
-  constructor(private gedApi: GedApiService) { }
+  constructor(private gedApi: GedApiService) {
+    this.loadFromSession();
+  }
 
   async GetAllPermissions(): Promise<Observable<Permission[]>> {
     return this.gedApi.GetAllPermissions();
@@ -24,8 +27,13 @@ export class PermissionService {
   setCurrentUser(user: UserProfile): void {
     console.log('🔐 PermissionService: setCurrentUser chamado com:', user);
     this.currentUser$.next(user);
-    this.userPermissions = user.permissions?.map(p => p.code || p.name) || [];
+    this.userPermissions = user.permissions?.map(p => p.name || p.code).filter((p): p is string => !!p) || [];
     this.userRole = user.role;
+    this.permissionsLoaded = true;
+
+    // Salva na sessão
+    this.saveToSession(user);
+
     console.log('🔐 PermissionService: Permissões carregadas:', this.userPermissions);
     console.log('🔐 PermissionService: Role carregada:', this.userRole);
     console.log('🔐 PermissionService: É admin?', this.isAdmin());
@@ -130,6 +138,11 @@ export class PermissionService {
     this.currentUser$.next(null);
     this.userPermissions = [];
     this.userRole = null;
+    this.permissionsLoaded = false;
+
+    // Remove da sessão
+    sessionStorage.removeItem('userPermissions');
+    sessionStorage.removeItem('userProfile');
   }
 
   /**
@@ -144,5 +157,73 @@ export class PermissionService {
    */
   getUserRole(): Role | null {
     return this.userRole;
+  }
+
+  /**
+   * Verifica se as permissões foram carregadas
+   */
+  arePermissionsLoaded(): boolean {
+    return this.permissionsLoaded;
+  }
+
+  /**
+   * Salva as permissões do usuário na sessão
+   */
+  private saveToSession(user: UserProfile): void {
+    try {
+      sessionStorage.setItem('userProfile', JSON.stringify(user));
+      sessionStorage.setItem('userPermissions', JSON.stringify(this.userPermissions));
+    } catch (error) {
+      console.warn('🔐 PermissionService: Erro ao salvar na sessão:', error);
+    }
+  }
+
+  /**
+   * Carrega as permissões do usuário da sessão
+   */
+  private loadFromSession(): void {
+    try {
+      const userProfile = sessionStorage.getItem('userProfile');
+      const userPermissions = sessionStorage.getItem('userPermissions');
+
+      if (userProfile && userPermissions) {
+        const user = JSON.parse(userProfile);
+        this.userPermissions = JSON.parse(userPermissions);
+        this.userRole = user.role;
+        this.permissionsLoaded = true;
+        this.currentUser$.next(user);
+
+        console.log('🔐 PermissionService: Permissões carregadas da sessão:', this.userPermissions);
+        console.log('🔐 PermissionService: Role carregada da sessão:', this.userRole);
+      }
+    } catch (error) {
+      console.warn('🔐 PermissionService: Erro ao carregar da sessão:', error);
+      this.clearCurrentUser();
+    }
+  }
+
+  /**
+   * Aguarda as permissões serem carregadas
+   */
+  waitForPermissions(): Promise<UserProfile | null> {
+    return new Promise((resolve) => {
+      if (this.permissionsLoaded) {
+        resolve(this.getCurrentUser());
+        return;
+      }
+
+      const subscription = this.currentUser$.subscribe((user) => {
+        if (user && this.permissionsLoaded) {
+          subscription.unsubscribe();
+          resolve(user);
+        }
+      });
+
+      // Timeout após 5 segundos
+      setTimeout(() => {
+        subscription.unsubscribe();
+        resolve(null);
+      }, 5000);
+    });
   }
 }

@@ -11,48 +11,103 @@
     </div>
   </div>
   <div class="modal-content">
-    <div style="display: flex; flex-direction: column; gap: 5px;">
+    <div style="display: flex; flex-direction: row; gap: 10px; height: 100%;">
       <!-- Quill Editor -->
-      <div class="editor-container">
-        <button class="btn acoes" title="Salvar Documento" (click)="updateDocumentHtml()">
-          <span class="material-icons ">save</span>
-          Salvar
-        </button>
-        <button class="btn acoes mine" title="Desfazer" (click)="undo()">
-          <span class="material-icons mine">undo</span>
-        </button>
-        <button class="btn acoes mine" title="Refazer" (click)="redo()">
-          <span class="material-icons mine">redo</span>
-        </button>
-        <div class="find">
-          <input type="text " class="input-search" placeholder="Buscar" [(ngModel)]="searchTerm">
+      <div class="editor-container" [style.width]="showVersionPanel ? '70%' : '100%'" style="transition: width 0.3s;">
+        <div class="toolbar-container">
+          <button class="btn acoes" title="Salvar Documento" (click)="updateDocumentHtml()" [disabled]="!hasUnsavedChanges">
+            <span class="material-icons">save</span>
+            Salvar
+            <span *ngIf="hasUnsavedChanges" class="unsaved-indicator">*</span>
+          </button>
+          <button class="btn acoes" title="Versões" (click)="toggleVersionPanel()">
+            <span class="material-icons">history</span>
+            Versões
+          </button>
+          <button class="btn acoes mine" title="Desfazer" (click)="undo()">
+            <span class="material-icons mine">undo</span>
+          </button>
+          <button class="btn acoes mine" title="Refazer" (click)="redo()">
+            <span class="material-icons mine">redo</span>
+          </button>
+          <div class="find">
+            <input type="text" class="input-search" placeholder="Buscar" [(ngModel)]="searchTerm">
+          </div>
+          <button class="btn acoes mine" title="Buscar" (click)="search()">
+            <span class="material-icons mine">search</span>
+          </button>
+          <button *ngIf="searchResults.length != 0" class="btn acoes mine" title="Próximo" (click)="nextSearch()">
+            <span *ngIf="searchResults.length != 0" class="material-icons mine">arrow_upward</span>
+          </button>
+          <button *ngIf="searchResults.length != 0" class="btn acoes mine" title="Anterior" (click)="prevSearch()">
+            <span *ngIf="searchResults.length != 0" class="material-icons mine">arrow_downward</span>
+          </button>
+          <span *ngIf="searchResults.length > 0" class="search-count">
+            {{ currentSearchIndex + 1 }} / {{ searchResults.length }}
+          </span>
         </div>
-        <button class="btn acoes mine" title="Buscar" (click)="search()">
-          <span class="material-icons mine">search</span>
-        </button>
-        <button *ngIf="searchResults.length != 0" class="btn acoes mine" title="Próximo" (click)="nextSearch()">
-          <span *ngIf="searchResults.length != 0" class="material-icons mine">arrow_upward</span>
-        </button>
-        <button *ngIf="searchResults.length != 0" class="btn acoes mine" title="Anterior" (click)="prevSearch()">
-          <span *ngIf="searchResults.length != 0" class="material-icons mine">arrow_downward</span>
-        </button>
 
-        <span *ngIf="searchResults.length > 0" class="search-count">
-          {{ currentSearchIndex + 1 }} / {{ searchResults.length }}
-        </span>
-        <!-- <div class="replace" *ngIf="searchResults.length > 0">
-          <input type="text" class="input-replace" placeholder="Substituir" [(ngModel)]="replaceTerm">
-          <button class="btn acoes mine" title="Substituir" (click)="replace()">
-            <span class="material-icons mine">swap_horiz</span>
-          </button>
-          <button class="btn acoes mine" title="Substituir Tudo" (click)="replaceAll()">
-            <span class="material-icons mine">done_all</span>
-          </button>
-        </div> -->
+        <div class="version-info" *ngIf="currentVersionNumber > 1">
+          <span class="material-icons">info</span>
+          Versão atual: {{ currentVersionNumber }}
+          <span *ngIf="hasUnsavedChanges" class="text-warning">(Alterações não salvas)</span>
+        </div>
 
         <quill-editor #quillEditor (onEditorCreated)="onEditorCreated($event)" class="quill-container"
-          [ngModelOptions]="{ standalone: true }" [(ngModel)]="content" style="height: 700px; width: 100%;" [modules]="quillModules">
+          [ngModelOptions]="{ standalone: true }" [(ngModel)]="content" style="height: 650px; width: 100%;" [modules]="quillModules">
         </quill-editor>
+      </div>
+
+      <!-- Version Panel -->
+      <div class="version-panel" *ngIf="showVersionPanel" style="width: 28%; overflow-y: auto; border-left: 1px solid #ddd; padding: 15px;">
+        <div class="version-panel-header">
+          <h5>Histórico de Versões</h5>
+          <button class="btn-close-panel" (click)="toggleVersionPanel()" title="Fechar painel">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+
+        <div *ngIf="isLoadingVersions" class="loading-versions">
+          <span class="spinner-border spinner-border-sm"></span>
+          Carregando versões...
+        </div>
+
+        <div *ngIf="!isLoadingVersions && documentVersions.length === 0" class="no-versions">
+          <span class="material-icons">folder_open</span>
+          <p>Nenhuma versão anterior encontrada</p>
+        </div>
+
+        <div class="versions-list" *ngIf="!isLoadingVersions && documentVersions.length > 0">
+          <div class="version-item" *ngFor="let version of documentVersions"
+               [class.current-version]="version.isCurrent">
+            <div class="version-header">
+              <span class="version-number">
+                <span class="material-icons">{{ version.isCurrent ? 'check_circle' : 'history' }}</span>
+                Versão {{ version.versionNumber }}
+              </span>
+              <span class="version-date">{{ formatDate(version.createdAt) }}</span>
+            </div>
+            <div class="version-info-details">
+              <p class="version-author">Por: {{ version.createdBy }}</p>
+              <p class="version-description" *ngIf="version.changeDescription">
+                {{ version.changeDescription }}
+              </p>
+            </div>
+            <div class="version-actions" *ngIf="!version.isCurrent">
+              <button class="btn btn-sm btn-outline-primary" (click)="restoreVersion(version)" title="Restaurar esta versão">
+                <span class="material-icons">restore</span>
+                Restaurar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="version-panel-footer">
+          <small class="text-muted">
+            <span class="material-icons" style="font-size: 14px;">info</span>
+            O sistema mantém histórico completo de todas as alterações
+          </small>
+        </div>
       </div>
     </div>
   </div>

@@ -65,9 +65,17 @@ export class EditorHtmlComponent implements AfterViewInit {
   replaceTerm: string = '';
   currentSearchIndex: number = -1;
   private quillEditor: Quill | null = null;
-  
+
   // Fullscreen property
   isFullscreen: boolean = false;
+
+  // Version control
+  showVersionPanel: boolean = false;
+  documentVersions: any[] = [];
+  isLoadingVersions: boolean = false;
+  currentVersionNumber: number = 1;
+  hasUnsavedChanges: boolean = false;
+  originalContent: string = '';
 
   constructor(
     private documentService: DocumentService,
@@ -75,8 +83,10 @@ export class EditorHtmlComponent implements AfterViewInit {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.content = data.content;
+    this.originalContent = data.content;
     this.processIdentifier = data.processIdentifier;
     this.documentId = data.documentId;
+    this.currentVersionNumber = data.versionNumber || 1;
 
     const Font = Quill.import('formats/font') as any;
     Font.whitelist = ['roboto', 'montserrat', 'arial', 'times-new-roman', 'courier'];
@@ -120,6 +130,11 @@ export class EditorHtmlComponent implements AfterViewInit {
         return document.createTextNode(node.textContent);
       }
       return node;
+    });
+
+    // Detectar mudanças no conteúdo
+    editor.on('text-change', () => {
+      this.hasUnsavedChanges = this.content !== this.originalContent;
     });
   }
 
@@ -207,7 +222,6 @@ export class EditorHtmlComponent implements AfterViewInit {
   }
 
   async updateDocumentHtml() {
-
     this.uiControllers.isLoading = true;
     const item = mapToHtmlItemDocumentToEdit(this.processIdentifier, this.documentId, this.content);
 
@@ -219,16 +233,96 @@ export class EditorHtmlComponent implements AfterViewInit {
 
     try {
       const result = await lastValueFrom(await this.documentService.updateDocumentHtml(item));
+
+      // Atualizar controle de versões
+      this.originalContent = this.content;
+      this.hasUnsavedChanges = false;
+      this.currentVersionNumber++;
+
       this.startDocumentCallback.emit({
         docID: result.updatedDocument.id,
         extension: result.updatedDocument.extension,
         name: result.updatedDocument.name,
       });
+
+      // Recarregar versões se o painel estiver aberto
+      if (this.showVersionPanel) {
+        await this.loadVersions();
+      }
+
       this.uiControllers.isLoading = false;
+      console.log('Document saved successfully. Version:', this.currentVersionNumber);
     } catch (error) {
       this.uiControllers.isLoading = false;
       console.error('Error updating document:', error);
     }
+  }
+
+  toggleVersionPanel() {
+    this.showVersionPanel = !this.showVersionPanel;
+    if (this.showVersionPanel && this.documentVersions.length === 0) {
+      this.loadVersions();
+    }
+  }
+
+  async loadVersions() {
+    this.isLoadingVersions = true;
+    try {
+      // TODO: Implementar chamada para API de versões quando backend estiver pronto
+      // const versions = await this.documentService.getDocumentVersions(this.documentId);
+      // this.documentVersions = versions;
+
+      // Mock temporário
+      this.documentVersions = [
+        {
+          versionNumber: this.currentVersionNumber,
+          createdAt: new Date().toISOString(),
+          createdBy: 'Usuário Atual',
+          changeDescription: 'Versão atual',
+          isCurrent: true
+        }
+      ];
+
+      this.isLoadingVersions = false;
+    } catch (error) {
+      console.error('Error loading versions:', error);
+      this.isLoadingVersions = false;
+    }
+  }
+
+  async restoreVersion(version: any) {
+    if (this.hasUnsavedChanges) {
+      const confirm = window.confirm(
+        'Você tem alterações não salvas. Deseja continuar e perder essas alterações?'
+      );
+      if (!confirm) return;
+    }
+
+    this.uiControllers.isLoading = true;
+    try {
+      // TODO: Implementar chamada para API de restauração quando backend estiver pronto
+      // const restoredContent = await this.documentService.restoreVersion(this.documentId, version.versionNumber);
+      // this.content = restoredContent;
+
+      console.log('Restoring version:', version.versionNumber);
+      alert('Funcionalidade de restauração será implementada quando o backend estiver pronto.');
+
+      this.uiControllers.isLoading = false;
+    } catch (error) {
+      console.error('Error restoring version:', error);
+      this.uiControllers.isLoading = false;
+    }
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
   }
 
   toggleFullscreen() {

@@ -221,3 +221,212 @@
   font-size: 14px;
   color: #333;
 }
+
+// Version Panel Styles
+.version-panel {
+  background: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+
+  .version-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #dee2e6;
+
+    h5 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #094c8c;
+    }
+
+    .btn-close-panel {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #6c757d;
+      padding: 4px;
+      border-radius: 4px;
+
+      &:hover {
+        background: #e9ecef;
+        color: #094c8c;
+      }
+
+      .material-icons {
+        font-size: 20px;
+      }
+    }
+  }
+
+  .loading-versions {
+    text-align: center;
+    padding: 30px;
+    color: #6c757d;
+
+    .spinner-border {
+      margin-right: 8px;
+    }
+  }
+
+  .no-versions {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+
+    .material-icons {
+      font-size: 48px;
+      opacity: 0.3;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+
+  .versions-list {
+    .version-item {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      &.current-version {
+        background: #e7f3ff;
+        border-color: #094c8c;
+
+        .version-number {
+          color: #094c8c;
+          font-weight: 600;
+        }
+      }
+
+      .version-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        .version-number {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-weight: 500;
+          font-size: 14px;
+          color: #495057;
+
+          .material-icons {
+            font-size: 18px;
+          }
+        }
+
+        .version-date {
+          font-size: 12px;
+          color: #6c757d;
+        }
+      }
+
+      .version-info-details {
+        margin-bottom: 8px;
+
+        .version-author {
+          font-size: 12px;
+          color: #6c757d;
+          margin-bottom: 4px;
+        }
+
+        .version-description {
+          font-size: 13px;
+          color: #495057;
+          font-style: italic;
+          margin: 0;
+        }
+      }
+
+      .version-actions {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #e9ecef;
+
+        .btn {
+          font-size: 12px;
+          padding: 4px 10px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+
+          .material-icons {
+            font-size: 16px;
+          }
+        }
+      }
+    }
+  }
+
+  .version-panel-footer {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+
+    small {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  }
+}
+
+// Version Info Banner
+.version-info {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #856404;
+
+  .material-icons {
+    font-size: 18px;
+  }
+
+  .text-warning {
+    color: #dc3545;
+    font-weight: 500;
+  }
+}
+
+// Unsaved indicator
+.unsaved-indicator {
+  color: #dc3545;
+  font-weight: bold;
+  margin-left: 4px;
+}
+
+// Toolbar container
+.toolbar-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}

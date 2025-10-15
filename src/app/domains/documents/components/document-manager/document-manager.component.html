@@ -46,12 +46,12 @@
                     <div class="btn-group" role="group">
                       <button type="button" class="btn btn-sm" [class.btn-primary]="searchType === 'protocol'"
                         [class.btn-outline-primary]="searchType !== 'protocol'"
-                        (click)="searchType = 'protocol'; clearSearchResults()">
+                        (click)="searchType = 'protocol'; clearSearchFields()">
                         <span class="material-icons-small">folder</span> Processo
                       </button>
                       <button type="button" class="btn btn-sm" [class.btn-primary]="searchType === 'identifier'"
                         [class.btn-outline-primary]="searchType !== 'identifier'"
-                        (click)="searchType = 'identifier'; clearSearchResults()">
+                        (click)="searchType = 'identifier'; clearSearchFields()">
                         <span class="material-icons-small">fingerprint</span> Identificador
                       </button>
                     </div>

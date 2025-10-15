@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { AddDocumentTypeModalComponent } from '../add-document-type-modal/add-document-type-modal.component';
+import { DocumentClassesManagementComponent } from '../document-classes-management/document-classes-management.component';
 import { UserPermissionsModalComponent } from '../user-permissions-modal/user-permissions-modal.component';
 import { MessageUtil } from '../../../../utils/message';
 
@@ -62,5 +63,25 @@ export class AdminDashboardComponent implements OnInit {
       (success) => console.log('🔗 Navegação sucesso:', success),
       (error) => console.error('🔗 Erro na navegação:', error)
     );
+  }
+
+  openDocumentClassesManagement(): void {
+    const dialogRef: MatDialogRef<DocumentClassesManagementComponent> = this.dialog.open(
+      DocumentClassesManagementComponent,
+      {
+        width: '95vw',
+        maxWidth: '1400px',
+        height: '90vh',
+        disableClose: false,
+        panelClass: 'full-screen-modal'
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success === true) {
+        console.log('Classes documentais gerenciadas com sucesso');
+        MessageUtil.displaySuccessMessage(this, 'Classes documentais atualizadas com sucesso!');
+      }
+    });
   }
 }

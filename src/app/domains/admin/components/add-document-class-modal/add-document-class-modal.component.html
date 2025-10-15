@@ -1,0 +1,234 @@
+<!-- Add Document Class Modal -->
+<div class="modal-header">
+  <h4 class="modal-title">
+    <span class="material-icons">add_circle</span>
+    Adicionar Classe Documental
+  </h4>
+  <button type="button" class="btn-close" (click)="onCancel()" [disabled]="isLoading">
+    <span class="material-icons">close</span>
+  </button>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="documentClassForm" (ngSubmit)="onSubmit()">
+
+    <!-- Informações Básicas -->
+    <div class="form-section">
+      <h6 class="section-title">
+        <span class="material-icons">info</span>
+        Informações Básicas
+      </h6>
+
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="code" class="form-label required">Código:</label>
+          <input
+            type="text"
+            class="form-control"
+            [class.is-invalid]="hasFieldError('code')"
+            id="code"
+            formControlName="code"
+            placeholder="Ex: 010.01, 020.03"
+            [disabled]="isLoading">
+          <div class="invalid-feedback" *ngIf="hasFieldError('code')">
+            {{ getFieldError('code') }}
+          </div>
+          <small class="form-text">Padrão: XXX.XX (ex: 010.01)</small>
+        </div>
+
+        <div class="form-group col-md-8">
+          <label for="parentClassId" class="form-label">Classe Pai:</label>
+          <select
+            class="form-control"
+            id="parentClassId"
+            formControlName="parentClassId"
+            [disabled]="isLoading || isLoadingParents">
+            <option [value]="null">Nenhuma (classe raiz)</option>
+            <option [value]="parent.id" *ngFor="let parent of parentClasses">
+              {{ parent.code }} - {{ parent.fullTerm }}
+            </option>
+          </select>
+          <small class="form-text">Associe a uma classe existente se for subclasse</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="fullTerm" class="form-label required">Termo Completo:</label>
+        <input
+          type="text"
+          class="form-control"
+          [class.is-invalid]="hasFieldError('fullTerm')"
+          id="fullTerm"
+          formControlName="fullTerm"
+          placeholder="Ex: Gestão de Recursos Humanos"
+          [disabled]="isLoading">
+        <div class="invalid-feedback" *ngIf="hasFieldError('fullTerm')">
+          {{ getFieldError('fullTerm') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description" class="form-label">Descrição:</label>
+        <textarea
+          class="form-control"
+          id="description"
+          formControlName="description"
+          rows="3"
+          placeholder="Descreva o escopo e aplicação desta classe..."
+          [disabled]="isLoading"></textarea>
+      </div>
+    </div>
+
+    <!-- Temporalidade -->
+    <div class="form-section">
+      <h6 class="section-title">
+        <span class="material-icons">schedule</span>
+        Temporalidade
+      </h6>
+
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label for="currentRetentionPeriod" class="form-label required">
+            Prazo de Guarda na Fase Corrente:
+          </label>
+          <div class="input-group">
+            <input
+              type="number"
+              class="form-control"
+              [class.is-invalid]="hasFieldError('currentRetentionPeriod')"
+              id="currentRetentionPeriod"
+              formControlName="currentRetentionPeriod"
+              min="0"
+              max="100"
+              [disabled]="isLoading">
+            <span class="input-group-text">ano(s)</span>
+          </div>
+          <div class="invalid-feedback" *ngIf="hasFieldError('currentRetentionPeriod')">
+            {{ getFieldError('currentRetentionPeriod') }}
+          </div>
+          <small class="form-text">Tempo que o documento permanece no arquivo corrente</small>
+        </div>
+
+        <div class="form-group col-md-6">
+          <label for="intermediateRetentionPeriod" class="form-label required">
+            Prazo de Guarda na Fase Intermediária:
+          </label>
+          <div class="input-group">
+            <input
+              type="number"
+              class="form-control"
+              [class.is-invalid]="hasFieldError('intermediateRetentionPeriod')"
+              id="intermediateRetentionPeriod"
+              formControlName="intermediateRetentionPeriod"
+              min="0"
+              max="100"
+              [disabled]="isLoading">
+            <span class="input-group-text">ano(s)</span>
+          </div>
+          <div class="invalid-feedback" *ngIf="hasFieldError('intermediateRetentionPeriod')">
+            {{ getFieldError('intermediateRetentionPeriod') }}
+          </div>
+          <small class="form-text">Tempo que o documento permanece no arquivo intermediário</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Destinação Final -->
+    <div class="form-section">
+      <h6 class="section-title">
+        <span class="material-icons">low_priority</span>
+        Destinação Final
+      </h6>
+
+      <div class="form-group">
+        <label class="form-label required">Após os prazos de guarda:</label>
+        <div class="disposition-options">
+          <div *ngFor="let option of finalDispositionOptions" class="disposition-option">
+            <input
+              type="radio"
+              [id]="'disposition_' + option.value"
+              [value]="option.value"
+              formControlName="finalDisposition"
+              class="form-check-input"
+              [disabled]="isLoading">
+            <label [for]="'disposition_' + option.value" class="disposition-label">
+              <div class="disposition-icon" [class]="'color-' + option.color">
+                <span class="material-icons">{{ option.icon }}</span>
+              </div>
+              <div class="disposition-info">
+                <strong>{{ option.label }}</strong>
+                <small *ngIf="option.value === 0">
+                  Documento deve ser eliminado imediatamente após criação
+                </small>
+                <small *ngIf="option.value === 1">
+                  Documento possui valor histórico e deve ser preservado permanentemente
+                </small>
+                <small *ngIf="option.value === 2">
+                  Documento deve ser eliminado após cumprimento dos prazos de guarda
+                </small>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observações -->
+    <div class="form-section">
+      <h6 class="section-title">
+        <span class="material-icons">notes</span>
+        Observações Adicionais
+      </h6>
+
+      <div class="form-group">
+        <label for="notes" class="form-label">Notas:</label>
+        <textarea
+          class="form-control"
+          id="notes"
+          formControlName="notes"
+          rows="3"
+          placeholder="Observações, legislação aplicável, recomendações..."
+          [disabled]="isLoading"></textarea>
+      </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel">
+      <div class="info-icon">
+        <span class="material-icons">info</span>
+      </div>
+      <div class="info-content">
+        <strong>e-ARQ Brasil:</strong> Esta classe documental seguirá o padrão e-ARQ Brasil
+        para gestão arquivística de documentos públicos digitais, garantindo conformidade
+        com as normas de temporalidade e destinação final.
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button
+    type="button"
+    class="btn btn-secondary"
+    (click)="onCancel()"
+    [disabled]="isLoading">
+    Cancelar
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="onSubmit()"
+    [disabled]="isLoading || !documentClassForm.valid">
+    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+    <span *ngIf="!isLoading">Criar Classe</span>
+    <span *ngIf="isLoading">Criando...</span>
+  </button>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" *ngIf="isLoading">
+  <div class="progress-bar-loading">
+    <div class="progress-bar-loading-value"></div>
+  </div>
+</div>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Get Authentication Token</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .token-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-left: 4px solid #2196F3;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔑 Obter Token de Autenticação</h1>
+    
+    <div class="info">
+        <strong>Instruções:</strong>
+        <ol>
+            <li>Faça login no sistema IRIS GED normalmente</li>
+            <li>Abra esta página</li>
+            <li>Clique nos botões abaixo para ver os tokens disponíveis</li>
+        </ol>
+    </div>
+
+    <h2>Token Gov.BR</h2>
+    <button onclick="getGovBrToken()">Buscar Token Gov.BR</button>
+    <div id="govbr-token" class="token-box"></div>
+
+    <h2>Token Azure AD (MSAL)</h2>
+    <button onclick="getMsalToken()">Buscar Token Azure</button>
+    <div id="azure-token" class="token-box"></div>
+
+    <h2>Todos os Cookies</h2>
+    <button onclick="getAllCookies()">Ver Todos os Cookies</button>
+    <div id="all-cookies" class="token-box"></div>
+
+    <h2>SessionStorage</h2>
+    <button onclick="getSessionStorage()">Ver SessionStorage</button>
+    <div id="session-storage" class="token-box"></div>
+
+    <h2>LocalStorage</h2>
+    <button onclick="getLocalStorage()">Ver LocalStorage</button>
+    <div id="local-storage" class="token-box"></div>
+
+    <script>
+        function getGovBrToken() {
+            // Tenta pegar do cookie
+            const cookieToken = document.cookie.split(';').find(c => c.includes('authTokenGovBR'));
+            const sessionToken = sessionStorage.getItem('authTokenGovBR');
+            
+            let result = '<h3>Cookie:</h3>';
+            result += cookieToken ? `<p>${cookieToken}</p>` : '<p>Não encontrado</p>';
+            result += '<h3>SessionStorage:</h3>';
+            result += sessionToken ? `<p>Bearer ${sessionToken}</p><button onclick="copyToClipboard('Bearer ${sessionToken}')">Copiar</button>` : '<p>Não encontrado</p>';
+            
+            document.getElementById('govbr-token').innerHTML = result;
+        }
+
+        function getMsalToken() {
+            // Tenta pegar tokens do MSAL no localStorage
+            let result = '<h3>Tokens MSAL encontrados:</h3>';
+            let found = false;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.includes('msal') || key.includes('token') || key.includes('access'))) {
+                    found = true;
+                    const value = localStorage.getItem(key);
+                    result += `<p><strong>${key}:</strong><br>${value ? value.substring(0, 200) + '...' : 'vazio'}</p>`;
+                }
+            }
+            
+            if (!found) {
+                result += '<p>Nenhum token MSAL encontrado no localStorage</p>';
+            }
+            
+            document.getElementById('azure-token').innerHTML = result;
+        }
+
+        function getAllCookies() {
+            const cookies = document.cookie.split(';');
+            let result = '<ul>';
+            cookies.forEach(cookie => {
+                result += `<li>${cookie.trim()}</li>`;
+            });
+            result += '</ul>';
+            document.getElementById('all-cookies').innerHTML = result;
+        }
+
+        function getSessionStorage() {
+            let result = '<ul>';
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                const value = sessionStorage.getItem(key);
+                result += `<li><strong>${key}:</strong> ${value ? value.substring(0, 100) + '...' : 'vazio'}</li>`;
+            }
+            result += '</ul>';
+            document.getElementById('session-storage').innerHTML = result;
+        }
+
+        function getLocalStorage() {
+            let result = '<ul>';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                result += `<li><strong>${key}:</strong> ${value ? value.substring(0, 100) + '...' : 'vazio'}</li>`;
+            }
+            result += '</ul>';
+            document.getElementById('local-storage').innerHTML = result;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Token copiado para a área de transferência!');
+            });
+        }
+    </script>
+</body>
+</html>

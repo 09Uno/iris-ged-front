@@ -179,9 +179,9 @@
                   {{ getModuleDisplayName(permission.module) }}
                 </div>
                 <div class="permission-details">
-                  <strong>{{ permission.name }}</strong>
-                  <small class="d-block text-muted" *ngIf="permission.description">
-                    {{ permission.description }}
+                  <strong>{{ permission.description }}</strong>
+                  <small class="d-block text-muted" *ngIf="permission.name">
+                    {{ permission.name }}
                   </small>
                 </div>
               </div>

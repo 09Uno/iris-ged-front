@@ -34,6 +34,9 @@ import { AdminDashboardComponent } from './components/admin-dashboard/admin-dash
 import { AddDocumentTypeModalComponent } from './components/add-document-type-modal/add-document-type-modal.component';
 import { UserPermissionsModalComponent } from './components/user-permissions-modal/user-permissions-modal.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
+import { DocumentClassesManagementComponent } from './components/document-classes-management/document-classes-management.component';
+import { AddDocumentClassModalComponent } from './components/add-document-class-modal/add-document-class-modal.component';
+import { EditDocumentClassModalComponent } from './components/edit-document-class-modal/edit-document-class-modal.component';
 
 const routes: Routes = [
   {
@@ -53,7 +56,10 @@ const routes: Routes = [
     AdminDashboardComponent,
     AddDocumentTypeModalComponent,
     UserPermissionsModalComponent,
-    UserManagementComponent
+    UserManagementComponent,
+    DocumentClassesManagementComponent,
+    AddDocumentClassModalComponent,
+    EditDocumentClassModalComponent
   ],
   imports: [
     CommonModule,

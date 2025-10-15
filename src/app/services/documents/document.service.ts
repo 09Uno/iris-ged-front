@@ -113,8 +113,16 @@ export class DocumentService {
     );
   }
 
-  async addType(documentType: DocumentType): Promise<Observable<any>> {
+  async addType(documentType: any): Promise<Observable<any>> {
     return this.gedApi.addDocumentType(documentType);
+  }
+
+  async updateType(id: number, documentType: any): Promise<Observable<any>> {
+    return this.gedApi.updateDocumentType(id, documentType);
+  }
+
+  async getTypeById(id: number): Promise<Observable<any>> {
+    return this.gedApi.getDocumentTypeById(id);
   }
 
 }

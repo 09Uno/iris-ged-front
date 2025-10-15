@@ -30,7 +30,9 @@
       {
         "ignore": [
           "-webkit-font-feature-settings",
-          "backdrop-filter"
+          "backdrop-filter",
+          "hyphens",
+          "user-select"
         ]
       }
     ]

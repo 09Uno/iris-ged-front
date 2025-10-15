@@ -285,7 +285,7 @@ export default class GedApiService {
     }
   }
 
-  async addDocumentType(documentType: DocumentType): Promise<Observable<any>> {
+  async addDocumentType(documentType: any): Promise<Observable<any>> {
     try {
       const token = await this.authService.getToken();
       const headers = new HttpHeaders({
@@ -302,6 +302,43 @@ export default class GedApiService {
       );
     } catch (error) {
       console.error('Error in addDocumentType:', error);
+      throw error;
+    }
+  }
+
+  async updateDocumentType(id: number, documentType: any): Promise<Observable<any>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
+      return this.http.put<any>(`${environment.apiUrl}v1/Document/UpdateDocumentType/${id}`, documentType, { headers }).pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error in updateDocumentType request:', error);
+          console.error('Status:', error.status);
+          console.error('Message:', error.message);
+          return throwError(error);
+        })
+      );
+    } catch (error) {
+      console.error('Error in updateDocumentType:', error);
+      throw error;
+    }
+  }
+
+  async getDocumentTypeById(id: number): Promise<Observable<DocumentType>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      return this.http.get<DocumentType>(`${environment.apiUrl}v1/Document/GetDocumentType/${id}`, { headers }).pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error in getDocumentTypeById:', error);
+          return throwError(error);
+        })
+      );
+    } catch (error) {
+      console.error('Error in getDocumentTypeById:', error);
       throw error;
     }
   }

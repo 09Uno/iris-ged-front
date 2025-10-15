@@ -260,9 +260,23 @@ a{
 }
 
 .material-icons-small {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
   font-size: 16px;
   margin-right: 8px;
   vertical-align: middle;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
 }
 
 .dropdown-item {

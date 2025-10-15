@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { DocumentService } from '@services/index';
-import { DocumentType } from '../../../../types';
+import { CreateDocumentTypeDto, DocumentClass } from '../../../../types';
+import { DocumentClassService } from '../../../../services/documents/document-class.service';
 
 @Component({
   selector: 'app-add-document-type-modal',
@@ -13,6 +14,8 @@ export class AddDocumentTypeModalComponent implements OnInit {
 
   documentTypeForm: FormGroup;
   isLoading = false;
+  documentClasses: DocumentClass[] = [];
+  isLoadingClasses = false;
 
   // Configuração do Quill Editor
   quillModules = {
@@ -52,7 +55,8 @@ export class AddDocumentTypeModalComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AddDocumentTypeModalComponent>,
-    private documentService: DocumentService
+    private documentService: DocumentService,
+    private documentClassService: DocumentClassService
   ) {
     this.documentTypeForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
@@ -61,25 +65,55 @@ export class AddDocumentTypeModalComponent implements OnInit {
       format: ['file'], // Default para arquivo, não obrigatório
       isActive: [true],
       prefix: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(10)]],
-      htmlContent: [''] // Campo para conteúdo HTML
+      htmlContent: [''], // Campo para conteúdo HTML
+      classeDocumentalId: [null], // Classe documental (opcional)
+      description: [''] // Descrição opcional
     });
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    await this.loadDocumentClasses();
+  }
+
+  async loadDocumentClasses(): Promise<void> {
+    this.isLoadingClasses = true;
+    try {
+      (await this.documentClassService.getActiveClasses()).subscribe({
+        next: (classes) => {
+          this.documentClasses = classes;
+          console.log('Document classes loaded:', classes);
+          this.isLoadingClasses = false;
+        },
+        error: (error) => {
+          console.error('Error loading document classes:', error);
+          this.isLoadingClasses = false;
+        }
+      });
+    } catch (error) {
+      console.error('Error in loadDocumentClasses:', error);
+      this.isLoadingClasses = false;
+    }
   }
 
   async onSubmit(): Promise<void> {
     if (this.documentTypeForm.valid) {
       this.isLoading = true;
 
-      const newDocumentType = {
-        ...this.documentTypeForm.value,
-        id: 0, 
-        isActive: this.documentTypeForm.value.isActive ?? true,
-        code: this.documentTypeForm.value.code,
-        category: this.documentTypeForm.value.category,
-        createdAt: new Date()
-      } as DocumentType;
+      const formValue = this.documentTypeForm.value;
+      const isHtmlType = formValue.format === 'html';
+
+      const newDocumentType: CreateDocumentTypeDto = {
+        name: formValue.name,
+        code: formValue.code,
+        category: formValue.category,
+        description: formValue.description || undefined,
+        prefix: formValue.prefix,
+        isActive: formValue.isActive ?? true,
+        classeDocumentalId: formValue.classeDocumentalId || undefined,
+        htmlTemplateContent: isHtmlType ? formValue.htmlContent : undefined,
+        templateFileName: isHtmlType ? `${formValue.code}_template.html` : undefined,
+        supportsHtmlEditing: isHtmlType
+      };
 
       try {
         (await this.documentService.addType(newDocumentType))
@@ -87,17 +121,17 @@ export class AddDocumentTypeModalComponent implements OnInit {
             next: (response) => {
               console.log('Document type added successfully:', response);
               this.isLoading = false;
-              this.dialogRef.close({ 
-                success: true, 
-                data: newDocumentType,
+              this.dialogRef.close({
+                success: true,
+                data: response,
                 message: 'Tipo de documento criado com sucesso!'
               });
             },
             error: (error) => {
               console.error('Error adding document type:', error);
               this.isLoading = false;
-              this.dialogRef.close({ 
-                success: false, 
+              this.dialogRef.close({
+                success: false,
                 error: error,
                 message: 'Erro ao criar tipo de documento. Tente novamente.'
               });
@@ -106,8 +140,8 @@ export class AddDocumentTypeModalComponent implements OnInit {
       } catch (error) {
         console.error('Error adding document type:', error);
         this.isLoading = false;
-        this.dialogRef.close({ 
-          success: false, 
+        this.dialogRef.close({
+          success: false,
           error: error,
           message: 'Erro ao criar tipo de documento. Tente novamente.'
         });

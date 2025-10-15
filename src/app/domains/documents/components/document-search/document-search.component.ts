@@ -32,10 +32,10 @@ interface DocumentResult {
 export class DocumentSearchComponent implements OnInit {
   searchForm: FormGroup;
   documentResults: SearchDocumentItem[] = [];
-  isCorporative: boolean = true; // Definido como corporativo por padrão
-  isProfessional: boolean = false; // Definido como profissional por padrão
+  isCorporative: boolean = true;
+  isProfessional: boolean = false;
   isLoading: boolean = false;
-
+  showAdvancedFilters: boolean = false;
 
   searchScopes = [
     { label: 'Processos', value: 'process' },
@@ -82,10 +82,9 @@ export class DocumentSearchComponent implements OnInit {
       const searchRequest: AdvancedSearchRequest = {
         searchText: searchParams.searchText || undefined,
         subject: searchParams.assunto || undefined,
-        generatingAgency: searchParams.orgaoGerador || undefined,
-        unitGenerated: searchParams.unidadeGerada || undefined,
+        producer: searchParams.orgaoGerador || undefined,
+        currentDepartment: searchParams.unidadeGerada || undefined,
         documentTypeId: searchParams.tipoDocumento || undefined,
-        author: searchParams.usuarioGerador || undefined,
         startDate: searchParams.periodoInicial || undefined,
         endDate: searchParams.periodoFinal || undefined,
         searchType: 'documents',
@@ -133,7 +132,6 @@ export class DocumentSearchComponent implements OnInit {
   viewDocumentDetails(document: SearchDocumentItem) {
     console.log('🔍 DocumentSearch: Visualizando detalhes do documento:', document);
 
-    // Navegar para a página de gerenciamento de documentos com parâmetros
     const protocol = document.processIdentifier || document.generatedProtocol;
 
     if (protocol) {
@@ -152,5 +150,18 @@ export class DocumentSearchComponent implements OnInit {
         }
       });
     }
+  }
+
+  toggleAdvancedFilters() {
+    this.showAdvancedFilters = !this.showAdvancedFilters;
+  }
+
+  getIconForScope(scope: string): string {
+    const icons: { [key: string]: string } = {
+      'process': 'folder',
+      'generated': 'insert_drive_file',
+      'external': 'cloud_upload'
+    };
+    return icons[scope] || 'description';
   }
 }

@@ -14,35 +14,30 @@ export class PermissionGuard implements CanActivate {
 
     console.log('🔒 PermissionGuard: Verificando permissão:', requiredPermission, 'e role:', requiredRole);
 
-    // Verifica se o usuário já está carregado
-    const currentUser = this.permissionService.getCurrentUser();
-    console.log('🔒 PermissionGuard: Usuario atual:', currentUser);
-
-    if (currentUser) {
-      console.log('🔒 PermissionGuard: Usuario carregado, verificando acesso...');
-      return this.checkUserAccess(currentUser, requiredPermission, requiredRole);
+    // Verifica se as permissões já foram carregadas (inclusive da sessão)
+    if (this.permissionService.arePermissionsLoaded()) {
+      const currentUser = this.permissionService.getCurrentUser();
+      console.log('🔒 PermissionGuard: Permissões já carregadas, verificando acesso...');
+      return this.checkUserAccess(currentUser!, requiredPermission, requiredRole);
     }
 
-    // Se usuário não está carregado, aguarda um pouco e verifica novamente
-    console.log('🔒 PermissionGuard: Usuario não carregado, aguardando...');
-    return timer(0, 200).pipe(
-      switchMap(() => {
-        const user = this.permissionService.getCurrentUser();
+    // Se permissões não estão carregadas, aguarda carregamento
+    console.log('🔒 PermissionGuard: Permissões não carregadas, aguardando...');
+    return new Observable<boolean | UrlTree>((observer) => {
+      this.permissionService.waitForPermissions().then((user) => {
         if (user) {
-          console.log('🔒 PermissionGuard: Usuario carregado após aguardar');
-          return this.checkUserAccess(user, requiredPermission, requiredRole);
-        }
-        return of(null);
-      }),
-      take(25), // Máximo 5 segundos (25 * 200ms)
-      map((result) => {
-        if (result === null) {
+          console.log('🔒 PermissionGuard: Permissões carregadas, verificando acesso...');
+          this.checkUserAccess(user, requiredPermission, requiredRole).subscribe((result) => {
+            observer.next(result);
+            observer.complete();
+          });
+        } else {
           console.log('🔒 PermissionGuard: Timeout - redirecionando para forbidden');
-          return this.router.createUrlTree(['/forbidden']);
+          observer.next(this.router.createUrlTree(['/forbidden']));
+          observer.complete();
         }
-        return result;
-      })
-    );
+      });
+    });
   }
 
   private checkUserAccess(user: any, requiredPermission?: string, requiredRole?: string): Observable<boolean | UrlTree> {
