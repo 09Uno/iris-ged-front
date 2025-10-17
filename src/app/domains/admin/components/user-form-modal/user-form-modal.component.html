@@ -1,0 +1,184 @@
+<div class="user-form-modal">
+  <h2 mat-dialog-title>
+    <span class="material-icons">{{ mode === 'create' ? 'person_add' : 'edit' }}</span>
+    {{ getTitle() }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="userForm" class="user-form">
+
+      <!-- Email -->
+      <div class="form-group">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <span class="material-icons">email</span>
+            Email
+          </mat-label>
+          <input matInput
+                 type="email"
+                 formControlName="email"
+                 placeholder="usuario@exemplo.com"
+                 required>
+          <mat-error *ngIf="userForm.get('email')?.hasError('required')">
+            Email é obrigatório
+          </mat-error>
+          <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+            Email inválido
+          </mat-error>
+          <mat-hint *ngIf="mode === 'edit'">Email não pode ser alterado</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <!-- Nome Completo -->
+      <div class="form-group">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <span class="material-icons">badge</span>
+            Nome Completo
+          </mat-label>
+          <input matInput
+                 formControlName="fullName"
+                 placeholder="João da Silva Santos"
+                 required>
+          <mat-error *ngIf="userForm.get('fullName')?.hasError('required')">
+            Nome completo é obrigatório
+          </mat-error>
+          <mat-error *ngIf="userForm.get('fullName')?.hasError('minlength')">
+            Mínimo de 3 caracteres
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Primeiro Nome e Sobrenome (lado a lado) -->
+      <div class="form-row">
+        <div class="form-group">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>
+              <span class="material-icons">person</span>
+              Primeiro Nome
+            </mat-label>
+            <input matInput
+                   formControlName="firstName"
+                   placeholder="João"
+                   required>
+            <mat-error *ngIf="userForm.get('firstName')?.hasError('required')">
+              Obrigatório
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-group">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>
+              <span class="material-icons">person_outline</span>
+              Sobrenome
+            </mat-label>
+            <input matInput
+                   formControlName="lastName"
+                   placeholder="Silva Santos">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Cargo -->
+      <div class="form-group">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <span class="material-icons">work</span>
+            Cargo
+          </mat-label>
+          <input matInput
+                 formControlName="position"
+                 placeholder="Analista de TI">
+        </mat-form-field>
+      </div>
+
+      <!-- Perfil -->
+      <div class="form-group">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <span class="material-icons">admin_panel_settings</span>
+            Perfil
+          </mat-label>
+          <mat-select formControlName="profile" required>
+            <mat-option *ngFor="let profile of profiles" [value]="profile.value">
+              {{ profile.label }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="userForm.get('profile')?.hasError('required')">
+            Perfil é obrigatório
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Setor -->
+      <div class="form-group">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <span class="material-icons">domain</span>
+            Setor *
+          </mat-label>
+          <mat-select formControlName="sectorId" required>
+            <mat-option [value]="null">Selecione um setor</mat-option>
+            <mat-option *ngFor="let sector of sectors" [value]="sector.id">
+              {{ sector.name }} ({{ sector.acronym }})
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="userForm.get('sectorId')?.hasError('required')">
+            Setor é obrigatório
+          </mat-error>
+          <mat-hint *ngIf="isLoadingSectors">Carregando setores...</mat-hint>
+          <mat-hint *ngIf="!isLoadingSectors">O setor define o departamento do usuário</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <!-- Role (apenas na criação) -->
+      <div *ngIf="mode === 'create'" class="form-group">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            <span class="material-icons">verified_user</span>
+            Role (Função)
+          </mat-label>
+          <mat-select formControlName="roleId">
+            <mat-option [value]="null">Nenhum</mat-option>
+            <mat-option *ngFor="let role of roles" [value]="role.id">
+              {{ role.name }}
+              <span *ngIf="role.description" class="text-muted"> - {{ role.description }}</span>
+            </mat-option>
+          </mat-select>
+          <mat-hint>Role inicial do usuário (opcional)</mat-hint>
+          <mat-hint *ngIf="isLoadingRoles">Carregando roles...</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <!-- Ativo (apenas na edição) -->
+      <div *ngIf="mode === 'edit'" class="form-group">
+        <mat-checkbox formControlName="active" color="primary">
+          <span class="material-icons">{{ userForm.get('active')?.value ? 'check_circle' : 'block' }}</span>
+          Usuário Ativo
+        </mat-checkbox>
+        <div class="checkbox-hint">
+          Desmarque para desativar o usuário no sistema
+        </div>
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button
+            (click)="onCancel()"
+            [disabled]="isLoading">
+      <span class="material-icons">close</span>
+      Cancelar
+    </button>
+    <button mat-raised-button
+            color="primary"
+            (click)="onSubmit()"
+            [disabled]="!isFormValid || isLoading">
+      <span class="material-icons">{{ mode === 'create' ? 'add' : 'save' }}</span>
+      {{ getSubmitButtonText() }}
+      <mat-spinner *ngIf="isLoading" diameter="20" class="spinner-inline"></mat-spinner>
+    </button>
+  </mat-dialog-actions>
+</div>

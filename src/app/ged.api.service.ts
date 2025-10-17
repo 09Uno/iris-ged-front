@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { catchError, Observable, throwError, lastValueFrom, tap, of } from 'rxjs';
+import { catchError, Observable, throwError, lastValueFrom, tap, of, from, switchMap } from 'rxjs';
 import { DocumentItem, HtmlDocumentItem, HtmlItemDocumentToEdit, NewDocumentDTO, AdvancedSearchRequest, AdvancedSearchResponse, DocumentType, GetDefaultRolesResponse, GetDefaultPermissionsResponse } from './types';
-import { UserMeDto, GetPagedUsersParamsDto, PagedUsersResponseDto } from './types/user.types';
+import { UserMeDto, GetPagedUsersParamsDto, PagedUsersResponseDto, CreateUserManagementDto, UpdateUserManagementDto, GetUserManagementResponse } from './types/user.types';
 import { UpdateUserPermissionsDto } from './types/permissions.types';
 import { AuthService } from './services/authentication/auth.service';
 import { environment } from '../environments/environment';
@@ -571,9 +571,146 @@ export default class GedApiService {
   }
   // #endregion
 
-    //update user
+  // #region Document Lifecycle Management
+  // Método para cancelar documento
+  async cancelDocument(documentId: number, userId: number, reason: string): Promise<Observable<any>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
 
-    //create user
+      const payload = { userId, reason };
+
+      return this.http.post(
+        `${environment.apiUrl}v1/Document/${documentId}/cancel`,
+        payload,
+        { headers }
+      ).pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error in cancelDocument request:', error);
+          return throwError(() => error);
+        })
+      );
+    } catch (error) {
+      console.error('Error while canceling document:', error);
+      throw error;
+    }
+  }
+
+  // Método para reativar documento
+  async reactivateDocument(documentId: number, userId: number, reason: string): Promise<Observable<any>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
+
+      const payload = { userId, reason };
+
+      return this.http.post(
+        `${environment.apiUrl}v1/Document/${documentId}/reactivate`,
+        payload,
+        { headers }
+      ).pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error in reactivateDocument request:', error);
+          return throwError(() => error);
+        })
+      );
+    } catch (error) {
+      console.error('Error while reactivating document:', error);
+      throw error;
+    }
+  }
+  // #endregion
+
+  // #region User Management
+  // Método para criar usuário (v1/UserManagement)
+ createUserManagement(dto: CreateUserManagementDto): Observable<any> {
+  return from(this.authService.getToken()).pipe(
+    switchMap(token => {
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
+
+      console.log('🔧 GedApi: Enviando POST UserManagement');
+      console.log('🔧 URL:', `${environment.apiUrl}v1/UserManagement`);
+      console.log('🔧 Body:', JSON.stringify(dto, null, 2));
+
+      return this.http.post(
+        `${environment.apiUrl}v1/UserManagement`,
+        dto,
+        { headers }
+      );
+    }),
+    catchError((error: HttpErrorResponse) => {
+      console.error('❌ Error in createUserManagement request:', error);
+      console.error('❌ Status:', error.status);
+      console.error('❌ Response:', error.error);
+      return throwError(() => error);
+    })
+  );
+}
+
+  // Método para atualizar usuário (v1/UserManagement - PUT com ID no body)
+async updateUserManagement(dto: UpdateUserManagementDto): Promise<Observable<any>> {
+  try {
+    const token = await this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    // ✅ Adicione o ID na URL
+    const userId = dto.id; // ou dto.Id, dependendo do seu DTO
+    
+    console.log('🔧 GedApi: Enviando PUT UserManagement');
+    console.log('🔧 URL:', `${environment.apiUrl}v1/UserManagement/${userId}`);
+    console.log('🔧 Body:', JSON.stringify(dto, null, 2));
+
+    return this.http.put(
+      `${environment.apiUrl}v1/UserManagement/${userId}`,  // ← ID adicionado aqui
+      dto,
+      { headers }
+    ).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error('❌ Error in updateUserManagement request:', error);
+        console.error('❌ Status:', error.status);
+        console.error('❌ Response:', error.error);
+        return throwError(() => error);
+      })
+    );
+  } catch (error) {
+    console.error('Error while updating user:', error);
+    throw error;
+  }
+}
+
+  // Método para obter usuário por ID (v1/UserManagement/{id})
+  async getUserManagementById(id: number): Promise<Observable<GetUserManagementResponse>> {
+    try {
+      const token = await this.authService.getToken();
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+      return this.http.get<GetUserManagementResponse>(
+        `${environment.apiUrl}v1/UserManagement/${id}`,
+        { headers }
+      ).pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error in getUserManagementById request:', error);
+          return throwError(() => error);
+        })
+      );
+    } catch (error) {
+      console.error('Error while getting user:', error);
+      throw error;
+    }
+  }
+  // #endregion
 
   //#endregion
 }

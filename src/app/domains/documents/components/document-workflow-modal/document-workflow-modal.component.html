@@ -1,0 +1,218 @@
+<div class="workflow-modal">
+  <h2 mat-dialog-title>
+    <span class="material-icons">compare_arrows</span>
+    Tramitação de Documento
+  </h2>
+
+  <mat-dialog-content>
+    <div class="workflow-modal-content">
+      <p class="document-name">{{ documentName }}</p>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-button" [class.active]="activeTab === 'new'" (click)="activeTab = 'new'">
+          <span class="material-icons">send</span>
+          Nova Tramitação
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">
+          <span class="material-icons">history</span>
+          Histórico ({{ workflows.length }})
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2">Carregando...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="alert alert-danger">
+        <span class="material-icons me-2">error</span>
+        {{ error }}
+      </div>
+
+      <!-- Tab: Nova Tramitação -->
+      <div *ngIf="activeTab === 'new' && !loading" class="tab-content">
+        <div class="workflow-form">
+          <div class="alert alert-info mb-3">
+            <span class="material-icons me-2">info</span>
+            Tramitar o documento para outro setor. O setor de destino receberá permissões de visualização e edição automaticamente.
+          </div>
+
+          <!-- Debug: Mostrar quantidade de setores -->
+          <div class="alert alert-info mb-2" *ngIf="sectors.length > 0">
+            <small>{{ sectors.length }} setor(es) carregado(s):</small>
+            <ul class="mb-0 mt-1">
+              <li *ngFor="let sector of sectors">
+                ID: {{ sector.id }}, Nome: {{ sector.name }}, Sigla: {{ sector.acronym }}
+              </li>
+            </ul>
+          </div>
+          <div class="alert alert-warning mb-2" *ngIf="sectors.length === 0">
+            <small>Nenhum setor ativo encontrado. Array sectors: {{ sectors | json }}</small>
+          </div>
+
+          <!-- Setor de Origem -->
+          <div class="form-group mb-3">
+            <label class="form-label">
+              <span class="material-icons">business</span>
+              Setor de Origem (Opcional)
+            </label>
+            <select class="form-control" [(ngModel)]="newWorkflow.originSectorId">
+              <option [ngValue]="undefined">Não especificado</option>
+              <option *ngFor="let sector of sectors" [ngValue]="sector.id">
+                {{ sector.name }} ({{ sector.acronym }})
+              </option>
+            </select>
+          </div>
+
+          <!-- Setor de Destino -->
+          <div class="form-group mb-3">
+            <label class="form-label">
+              <span class="material-icons">business</span>
+              Setor de Destino <span class="text-danger">*</span>
+            </label>
+            <select class="form-control" [(ngModel)]="newWorkflow.destinationSectorId" required>
+              <option [ngValue]="null">Selecione o setor de destino</option>
+              <option *ngFor="let sector of sectors" [ngValue]="sector.id">
+                {{ sector.name }} ({{ sector.acronym }})
+              </option>
+            </select>
+          </div>
+
+          <!-- Prazo de Resposta -->
+          <div class="form-group mb-3">
+            <label class="form-label">
+              <span class="material-icons">schedule</span>
+              Prazo de Resposta (dias)
+            </label>
+            <input type="number"
+                   class="form-control"
+                   [(ngModel)]="newWorkflow.responseDeadlineDays"
+                   min="0"
+                   placeholder="Exemplo: 3" />
+            <small class="form-text text-muted">Deixe vazio se não houver prazo específico</small>
+          </div>
+
+          <!-- Observações -->
+          <div class="form-group mb-3">
+            <label class="form-label">
+              <span class="material-icons">notes</span>
+              Observações
+            </label>
+            <textarea class="form-control"
+                      [(ngModel)]="newWorkflow.memo"
+                      rows="4"
+                      placeholder="Digite aqui observações sobre a tramitação..."></textarea>
+          </div>
+
+          <!-- Botões -->
+          <div class="form-actions">
+            <button mat-button (click)="resetForm()">Limpar</button>
+            <button mat-raised-button
+                    color="primary"
+                    (click)="submitWorkflow()"
+                    [disabled]="!newWorkflow.destinationSectorId || loading">
+              <span class="material-icons me-1">send</span>
+              Tramitar Documento
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Histórico -->
+      <div *ngIf="activeTab === 'history' && !loading" class="tab-content">
+        <!-- Tramitações Pendentes -->
+        <div *ngIf="pendingWorkflows.length > 0" class="mb-4">
+          <h3 class="section-title">
+            <span class="material-icons">pending_actions</span>
+            Tramitações Pendentes
+          </h3>
+          <div *ngFor="let workflow of pendingWorkflows" class="workflow-item pending">
+            <div class="workflow-header">
+              <div class="workflow-route">
+                <span class="badge bg-primary">{{ workflow.originDepartment }}</span>
+                <span class="material-icons">arrow_forward</span>
+                <span class="badge bg-success">{{ workflow.destinationDepartment }}</span>
+              </div>
+              <span class="badge bg-warning">Pendente</span>
+            </div>
+            <div class="workflow-details">
+              <div class="detail-item">
+                <span class="material-icons">person</span>
+                <span>Enviado por: <strong>{{ workflow.sendingUserName || 'Usuário #' + workflow.sendingUserId }}</strong></span>
+              </div>
+              <div class="detail-item">
+                <span class="material-icons">calendar_today</span>
+                <span>Data: {{ workflow.sendDate | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div *ngIf="workflow.memo" class="detail-item memo">
+                <span class="material-icons">notes</span>
+                <span>{{ workflow.memo }}</span>
+              </div>
+            </div>
+            <div class="workflow-actions">
+              <button mat-raised-button color="accent" (click)="completeWorkflow(workflow.id)">
+                <span class="material-icons">check_circle</span>
+                Finalizar Tramitação
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Histórico Completo -->
+        <h3 class="section-title">
+          <span class="material-icons">history</span>
+          Histórico Completo
+        </h3>
+
+        <div *ngIf="workflows.length === 0" class="empty-state">
+          <span class="material-icons">inbox</span>
+          <p>Nenhuma tramitação registrada</p>
+        </div>
+
+        <div class="workflow-timeline">
+          <div *ngFor="let workflow of workflows; let i = index" class="timeline-item" [class.completed]="workflow.completed">
+            <div class="timeline-marker">
+              <span class="material-icons">{{ workflow.completed ? 'check_circle' : 'radio_button_unchecked' }}</span>
+            </div>
+            <div class="timeline-content">
+              <div class="workflow-route">
+                <span class="badge bg-primary">{{ workflow.originDepartment }}</span>
+                <span class="material-icons">arrow_forward</span>
+                <span class="badge bg-success">{{ workflow.destinationDepartment }}</span>
+              </div>
+              <div class="workflow-info">
+                <div class="info-row">
+                  <span class="material-icons">person</span>
+                  <span>{{ workflow.sendingUserName || 'Usuário #' + workflow.sendingUserId }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="material-icons">calendar_today</span>
+                  <span>{{ workflow.sendDate | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div *ngIf="workflow.completed" class="info-row">
+                  <span class="material-icons">done</span>
+                  <span>Finalizado em {{ workflow.receiveDate | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div *ngIf="workflow.memo" class="info-row memo">
+                  <span class="material-icons">notes</span>
+                  <span>{{ workflow.memo }}</span>
+                </div>
+                <div *ngIf="workflow.notes" class="info-row notes">
+                  <span class="material-icons">comment</span>
+                  <span>{{ workflow.notes }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="close()">Fechar</button>
+  </mat-dialog-actions>
+</div>

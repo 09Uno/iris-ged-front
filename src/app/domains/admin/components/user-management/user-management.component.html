@@ -195,6 +195,16 @@
 
           <button
             type="button"
+            class="action-btn secondary"
+            (click)="openPermissionsModal(user)"
+            [disabled]="isLoading"
+            title="Gerenciar permissões">
+            <span class="material-icons">security</span>
+            Permissões
+          </button>
+
+          <button
+            type="button"
             class="action-btn"
             [class.warning]="user.isActive"
             [class.success]="!user.isActive"

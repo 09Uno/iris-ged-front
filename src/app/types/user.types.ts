@@ -101,3 +101,63 @@ export interface PermissionToUpdateUserPermission {
   module: string;
   description: string;
 }
+
+// ========================================
+// USER MANAGEMENT (v1/UserManagement)
+// ========================================
+
+export interface UserRole {
+  roleId: number;
+  roleName: string;
+  roleDescription?: string;
+  active: boolean;
+  assignedAt: string;
+}
+
+export interface UserManagementDto {
+  id: number;
+  objectId: string;
+  email: string;
+  fullName: string;
+  firstName: string;
+  lastName?: string;
+  position?: string;
+  department?: string;
+  profile: string;
+  active: boolean;
+  createdAt: string;
+  lastSync: string;
+  sectorId?: number;
+  sectorName?: string;
+  roles: UserRole[];
+}
+
+export interface CreateUserManagementDto {
+  objectId: string;
+  email: string;
+  fullName: string;
+  firstName: string;
+  lastName?: string;
+  position?: string;
+  department?: string;
+  profile: string;
+  sectorId?: number;
+  roleId?: number;
+}
+
+export interface UpdateUserManagementDto {
+  id: number;
+  fullName: string;
+  firstName: string;
+  lastName?: string;
+  position?: string;
+  department?: string;
+  profile: string;
+  sectorId?: number;
+  active: boolean;
+}
+
+export interface GetUserManagementResponse {
+  success: boolean;
+  user: UserManagementDto;
+}

@@ -125,13 +125,21 @@
                     <span class="material-icons">swap_vert</span>
                   </button>
 
+                  <button class="btn btn-iris-action" title="Gerenciar Permissões do Documento."
+                    *ngIf="managerAttributes.selectedDocument"
+                    (click)="openPermissionsModal()">
+                    <span class="material-icons">lock</span>
+                  </button>
+
+                  <button class="btn btn-iris-action" title="Tramitar Documento."
+                    *ngIf="managerAttributes.selectedDocument"
+                    (click)="openWorkflowModal()">
+                    <span class="material-icons">send</span>
+                  </button>
+
                   <button class="btn btn-iris-action" title="Assinar Documento."
                     *ngIf="false">
                     <span class="material-icons">assignment_turned_in</span>
-                  </button>
-
-                  <button class="btn btn-iris-action" title="Tramitar." *ngIf="false">
-                    <span class="material-icons">move_up</span>
                   </button>
 
                   <button class="btn btn-iris-action" title="Baixar." *ngIf="managerAttributes.selectedDocument"
@@ -139,9 +147,16 @@
                     <span class="material-icons">download</span>
                   </button>
 
-                  <button class="btn btn-iris-action btn-iris-danger" title="Deletar Documento."
-                    *ngIf="managerAttributes.selectedDocument">
-                    <span class="material-icons">delete</span>
+                  <button class="btn btn-iris-action btn-iris-danger" title="Cancelar Documento."
+                    *ngIf="managerAttributes.selectedDocument && !managerAttributes.documentCancelled"
+                    (click)="cancelDocument()">
+                    <span class="material-icons">cancel</span>
+                  </button>
+
+                  <button class="btn btn-iris-action btn-iris-success" title="Reativar Documento."
+                    *ngIf="managerAttributes.selectedDocument && managerAttributes.documentCancelled"
+                    (click)="reactivateDocument()">
+                    <span class="material-icons">restart_alt</span>
                   </button>
                 </div>
               </div>

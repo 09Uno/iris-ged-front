@@ -1,0 +1,147 @@
+.user-form-modal {
+  min-width: 500px;
+  max-width: 700px;
+
+  h2[mat-dialog-title] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #1976d2;
+    font-weight: 600;
+    font-size: 24px;
+    margin-bottom: 0;
+
+    .material-icons {
+      font-size: 28px;
+    }
+  }
+
+  mat-dialog-content {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-group {
+    width: 100%;
+
+    mat-form-field {
+      width: 100%;
+
+      mat-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .material-icons {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .checkbox-hint {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.6);
+    margin-top: 4px;
+    margin-left: 32px;
+  }
+
+  mat-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .material-icons {
+      font-size: 20px;
+      vertical-align: middle;
+    }
+  }
+
+  mat-dialog-actions {
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    gap: 12px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .material-icons {
+        font-size: 18px;
+      }
+
+      .spinner-inline {
+        margin-left: 8px;
+      }
+    }
+  }
+
+  .text-muted {
+    color: rgba(0, 0, 0, 0.54);
+    font-size: 0.9em;
+  }
+
+  // Loading state
+  mat-form-field {
+    &.loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+
+  // Error states
+  mat-error {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  // Hints
+  mat-hint {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .user-form-modal {
+    min-width: 100%;
+    max-width: 100%;
+
+    mat-dialog-content {
+      padding: 16px;
+    }
+
+    h2[mat-dialog-title] {
+      font-size: 20px;
+
+      .material-icons {
+        font-size: 24px;
+      }
+    }
+  }
+}

@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
-import { User, GetPagedUsersParamsDto, PagedUsersResponseDto } from '../types/user.types';
+import { User, GetPagedUsersParamsDto, PagedUsersResponseDto, CreateUserManagementDto, UpdateUserManagementDto, GetUserManagementResponse } from '../types/user.types';
 import { UpdateUserPermissionsDto } from '../types/permissions.types';
 import { environment } from '@environments/environment';
 import GedApiService from '../ged.api.service';
@@ -77,7 +77,47 @@ export class UserManagementService {
   }
 
   /**
-   * Obtém um usuário específico por ID
+   * Obtém um usuário específico por ID (v1/UserManagement/{id})
+   */
+  async getUserManagementById(id: number): Promise<Observable<GetUserManagementResponse>> {
+    try {
+      return await this.gedApi.getUserManagementById(id);
+    } catch (error) {
+      console.error('Erro ao buscar usuário por ID:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cria um novo usuário (v1/UserManagement)
+   */
+  async createUserManagement(dto: CreateUserManagementDto): Promise<Observable<any>> {
+    try {
+      return await this.gedApi.createUserManagement(dto);
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Atualiza um usuário existente (v1/UserManagement/{id})
+   */
+  async updateUserManagement(dto: UpdateUserManagementDto): Promise<Observable<any>> {
+    try {
+      return await this.gedApi.updateUserManagement(dto);
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error);
+      throw error;
+    }
+  }
+
+  // ========================================
+  // MÉTODOS LEGADOS (manter compatibilidade)
+  // ========================================
+
+  /**
+   * Obtém um usuário específico por ID (método legado)
    */
   getUserById(id: number): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/users/${id}`)
@@ -87,7 +127,7 @@ export class UserManagementService {
   }
 
   /**
-   * Cria um novo usuário
+   * Cria um novo usuário (método legado)
    */
   createUser(user: Partial<User>): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}/users`, user)
@@ -97,7 +137,7 @@ export class UserManagementService {
   }
 
   /**
-   * Atualiza um usuário existente
+   * Atualiza um usuário existente (método legado)
    */
   updateUser(id: number, user: Partial<User>): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/users/${id}`, user)

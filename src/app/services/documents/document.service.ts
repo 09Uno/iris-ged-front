@@ -125,4 +125,12 @@ export class DocumentService {
     return this.gedApi.getDocumentTypeById(id);
   }
 
+  async cancelDocument(documentId: number, userId: number, reason: string): Promise<Observable<any>> {
+    return this.gedApi.cancelDocument(documentId, userId, reason);
+  }
+
+  async reactivateDocument(documentId: number, userId: number, reason: string): Promise<Observable<any>> {
+    return this.gedApi.reactivateDocument(documentId, userId, reason);
+  }
+
 }

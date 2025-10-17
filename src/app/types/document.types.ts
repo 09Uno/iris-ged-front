@@ -132,6 +132,17 @@ export interface NewDocumentDTO {
   DocumentNumber?: string;
   useManualProtocol?: boolean;
   manualProtocolNumber?: string;
+
+  // 🔐 Permissões e Workflow
+  sectorId?: number;                          // Setor responsável
+  shareWithUserIds?: number[];                // Usuários com acesso
+  shareWithSectorIds?: number[];              // Setores com acesso
+  restrictedAccess?: boolean;                 // Acesso restrito?
+
+  // 📋 Modelo SEI (Sistema Eletrônico de Informações)
+  nivelAcesso?: 'Publico' | 'Restrito' | 'Sigiloso';  // Nível de acesso
+  nivelRestricao?: 'None' | 'Usuario' | 'Unidade';    // Nível de restrição
+  hipoteseLegal?: string;                              // Hipótese legal (obrigatório para Restrito/Sigiloso)
 }
 
 export interface AdvancedSearchRequest {

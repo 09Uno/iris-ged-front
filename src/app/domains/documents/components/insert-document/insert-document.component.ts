@@ -9,6 +9,8 @@ import { ToolBarComponent } from '@features/tool-bar.component/tool-bar.componen
 import GedApiService from '../../../../ged.api.service';
 import { NewDocumentDTO, DocumentType } from '../../../../types';
 import { DocumentService } from '../../../../services/documents/document.service';
+import { SectorService } from '../../../../services/sector/sector.service';
+import { Sector } from '../../../../types/sector.types';
 // #endregion
 
 // #region Component Declaration
@@ -53,7 +55,12 @@ export class InsertDocumentComponent implements OnInit {
     observacoes: '',
     palavrasChave: '',
     useManualProtocol: 'false',
-    manualProtocolNumber: ''
+    manualProtocolNumber: '',
+    setorId: undefined as number | undefined,
+    // Campos SEI
+    nivelAcesso: 'Publico' as 'Publico' | 'Restrito' | 'Sigiloso',
+    nivelRestricao: undefined as 'None' | 'Usuario' | 'Unidade' | undefined,
+    hipoteseLegal: ''
   };
 
   // Process received from navigation (automatic)
@@ -69,6 +76,7 @@ export class InsertDocumentComponent implements OnInit {
 
   // Opções para os selects
   tiposDocumento: DocumentType[] = [];
+  setores: Sector[] = [];
 
   orgaosOrigem = [
     'Plenária',
@@ -76,6 +84,10 @@ export class InsertDocumentComponent implements OnInit {
     'Secretaria',
     'Presidência'
   ];
+
+  // Permissões
+  showPermissionsSection = false;
+  restrictedAccess = false;
   // #endregion
 
   // #region Constructor
@@ -84,7 +96,8 @@ export class InsertDocumentComponent implements OnInit {
     private gedApiService: GedApiService,
     private route: ActivatedRoute,
     private documentService: DocumentService,
-    private router: Router
+    private router: Router,
+    private sectorService: SectorService
   ) { }
   // #endregion
 
@@ -94,8 +107,9 @@ export class InsertDocumentComponent implements OnInit {
     // Set default date to today
     this.formData.dataDocumento = new Date().toISOString().split('T')[0];
 
-    // Load document types
+    // Load document types and sectors
     await this.loadDocumentTypes();
+    await this.loadSectors();
 
     console.log('InsertDocumentComponent ngOnInit:', {
       modal: this.modal,
@@ -194,10 +208,19 @@ export class InsertDocumentComponent implements OnInit {
         isConfidential: this.formData.confidencial,
         observations: this.formData.observacoes || undefined,
         keywords: this.formData.palavrasChave || undefined,
-        creatorUserId: 0, 
+        creatorUserId: 0,
         DocumentNumber: this.getDocumentNumber(),
         useManualProtocol: this.shouldUseManualProtocol(),
-        manualProtocolNumber: this.formData.useManualProtocol === 'true' ? this.formData.manualProtocolNumber || undefined : undefined
+        manualProtocolNumber: this.formData.useManualProtocol === 'true' ? this.formData.manualProtocolNumber || undefined : undefined,
+
+        // 🔐 Permissões e Workflow
+        sectorId: this.formData.setorId || undefined,
+        restrictedAccess: this.restrictedAccess,
+
+        // 📋 Modelo SEI
+        nivelAcesso: this.formData.nivelAcesso,
+        nivelRestricao: this.formData.nivelRestricao,
+        hipoteseLegal: this.formData.hipoteseLegal || undefined
       };
 
       console.log('DEBUG: formData.useManualProtocol ANTES da conversão:', this.formData.useManualProtocol);
@@ -318,12 +341,17 @@ export class InsertDocumentComponent implements OnInit {
         this.submitSuccess = false;
         return false;
       }
-      
+
       if (this.formData.manualProtocolNumber.trim().length < 3) {
         this.submitMessage = 'Número do processo deve ter pelo menos 3 caracteres.';
         this.submitSuccess = false;
         return false;
       }
+    }
+
+    // ✅ Validações SEI
+    if (!this.validateSEIRules()) {
+      return false;
     }
 
     if (!this.selectedFile) {
@@ -333,6 +361,31 @@ export class InsertDocumentComponent implements OnInit {
     }
 
     return true;
+  }
+
+  // ✅ Validação do Modelo SEI
+  validateSEIRules(): boolean {
+    // REGRA SEI: Documentos restritos/sigilosos exigem hipótese legal
+    if (this.formData.nivelAcesso === 'Restrito' || this.formData.nivelAcesso === 'Sigiloso') {
+      if (!this.formData.hipoteseLegal?.trim()) {
+        this.submitMessage = 'Hipótese legal é obrigatória para documentos restritos/sigilosos (Lei 12.527/2011)';
+        this.submitSuccess = false;
+        return false;
+      }
+
+      if (!this.formData.nivelRestricao) {
+        this.submitMessage = 'Defina o nível de restrição (Usuário ou Unidade)';
+        this.submitSuccess = false;
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // Getter para usar no template e evitar erro de tipo do Angular
+  get isDocumentoRestrito(): boolean {
+    return this.formData.nivelAcesso !== 'Publico';
   }
   // #endregion
 
@@ -353,10 +406,17 @@ export class InsertDocumentComponent implements OnInit {
       observacoes: '',
       palavrasChave: '',
       useManualProtocol: 'false',
-      manualProtocolNumber: ''
+      manualProtocolNumber: '',
+      setorId: undefined,
+      // Campos SEI
+      nivelAcesso: 'Publico' as 'Publico' | 'Restrito' | 'Sigiloso',
+      nivelRestricao: undefined as 'None' | 'Usuario' | 'Unidade' | undefined,
+      hipoteseLegal: ''
     };
     // Don't reset existingProcess as it comes from navigation
     this.selectedFile = null;
+    this.restrictedAccess = false;
+    this.showPermissionsSection = false;
 
     // Clear file input
     const fileInput = document.getElementById('arquivo') as HTMLInputElement;
@@ -496,6 +556,24 @@ export class InsertDocumentComponent implements OnInit {
       });
     } catch (error) {
       console.error('Error calling getDocumentsTypes:', error);
+    }
+  }
+
+  async loadSectors() {
+    console.log('loadSectors called');
+    try {
+      const observable = await this.sectorService.getActiveSectors();
+      observable.subscribe({
+        next: (sectors: Sector[]) => {
+          this.setores = sectors;
+          console.log('Sectors loaded:', this.setores);
+        },
+        error: (error) => {
+          console.error('Error loading sectors:', error);
+        }
+      });
+    } catch (error) {
+      console.error('Error calling getActiveSectors:', error);
     }
   }
   // #endregion

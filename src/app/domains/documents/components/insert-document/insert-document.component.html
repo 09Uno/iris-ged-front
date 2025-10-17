@@ -176,11 +176,7 @@
                     </option>
                   </select>
                 </div> -->
-                <div class="col-md-4 mb-3">
-                  <label for="unidadeOrigem" class="form-label-expanded">Unidade</label>
-                  <input type="text" id="unidadeOrigem" class="form-control form-control-expanded"
-                    [(ngModel)]="formData.unidadeOrigem" name="unidadeOrigem" placeholder="Unidade de origem">
-                </div>
+            
                 <div class="col-md-4 mb-3">
                   <label for="palavrasChave" class="form-label-expanded">Palavras-chave</label>
                   <input type="text" id="palavrasChave" class="form-control form-control-expanded"
@@ -196,20 +192,129 @@
                     [(ngModel)]="formData.observacoes" name="observacoes"
                     placeholder="Observações adicionais sobre o documento..."></textarea>
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label-expanded">Configurações</label>
-                  <div class="form-check-container-expanded">
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="publico" [ngModel]="formData.publico"
-                        (ngModelChange)="onPublicoChange($event)" name="publico">
-                      <label class="form-check-label" for="publico">Documento Público</label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="confidencial"
-                        [ngModel]="formData.confidencial" (ngModelChange)="onConfidencialChange($event)"
-                        name="confidencial">
-                      <label class="form-check-label" for="confidencial">Confidencial</label>
-                    </div>
+                
+              </div>
+            </div>
+
+            <!-- 🔐 Controle de Acesso -->
+            <div class="form-section-expanded">
+              <h6 class="section-title">
+                <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">security</span>
+                Controle de Acesso
+              </h6>
+
+              <div class="row">
+                <!-- Setor Responsável -->
+                <div class="col-md-6 mb-3">
+                  <label for="setor" class="form-label-expanded">
+                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">business</span>
+                    Setor Responsável
+                  </label>
+                  <select id="setor"
+                          class="form-control form-control-expanded"
+                          [(ngModel)]="formData.setorId"
+                          name="setor">
+                    <option [value]="undefined">Nenhum setor específico</option>
+                    <option *ngFor="let setor of setores" [value]="setor.id">
+                      {{ setor.name }} ({{ setor.acronym }})
+                    </option>
+                  </select>
+                  <small class="form-text text-muted">
+                    O setor responsável terá acesso automático ao documento
+                  </small>
+                </div>
+              </div>
+
+              <!-- Informação sobre permissões avançadas -->
+              <div class="row">
+                <div class="col-12">
+                  <div class="alert alert-info" style="font-size: 13px; padding: 10px;">
+                    <span class="material-icons me-2" style="vertical-align: middle; font-size: 18px;">info</span>
+                    <strong>Dica:</strong> Após criar o documento, você poderá gerenciar permissões detalhadas (visualizar, editar, assinar, baixar) através do botão de segurança no visualizador.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 📋 Classificação de Acesso SEI -->
+            <div class="form-section-expanded">
+              <h6 class="section-title">
+                <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">gavel</span>
+                Classificação de Acesso (Lei 12.527/2011)
+              </h6>
+
+              <div class="row">
+                <!-- Nível de Acesso -->
+                <div class="col-md-6 mb-3">
+                  <label for="nivelAcesso" class="form-label-expanded">
+                    Nível de Acesso <span class="required">*</span>
+                  </label>
+                  <select id="nivelAcesso"
+                          class="form-control form-control-expanded"
+                          [(ngModel)]="formData.nivelAcesso"
+                          name="nivelAcesso"
+                          required>
+                    <option value="Publico">🌍 Público (Sem restrições)</option>
+                    <option value="Restrito">🔒 Restrito (Requer permissão específica)</option>
+                    <option value="Sigiloso">🔐 Sigiloso (Alto grau de sigilo)</option>
+                  </select>
+                  <small class="form-text text-muted">
+                    Baseado na Lei de Acesso à Informação (LAI)
+                  </small>
+                </div>
+
+                <!-- Nível de Restrição (Condicional) -->
+                <div class="col-md-6 mb-3" *ngIf="isDocumentoRestrito">
+                  <label for="nivelRestricao" class="form-label-expanded">
+                    Nível de Restrição <span class="required">*</span>
+                  </label>
+                  <select id="nivelRestricao"
+                          class="form-control form-control-expanded"
+                          [(ngModel)]="formData.nivelRestricao"
+                          name="nivelRestricao"
+                          [required]="isDocumentoRestrito">
+                    <option [value]="undefined">Selecione...</option>
+                    <option value="Usuario">👤 Usuário (Restrição Pessoal)</option>
+                    <option value="Unidade">🏢 Unidade (Restrição Setorial)</option>
+                  </select>
+                  <small class="form-text text-muted">
+                    Como as permissões serão gerenciadas
+                  </small>
+                </div>
+              </div>
+
+              <!-- Hipótese Legal (Condicional) -->
+              <div class="row" *ngIf="isDocumentoRestrito">
+                <div class="col-12 mb-3">
+                  <label for="hipoteseLegal" class="form-label-expanded">
+                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">balance</span>
+                    Hipótese Legal de Restrição <span class="required">*</span>
+                  </label>
+                  <textarea id="hipoteseLegal"
+                            class="form-control form-control-expanded"
+                            [(ngModel)]="formData.hipoteseLegal"
+                            name="hipoteseLegal"
+                            rows="3"
+                            [required]="isDocumentoRestrito"
+                            placeholder="Ex: Lei 12.527/2011, Art. 23, I - Informações pessoais protegidas"></textarea>
+                  <small class="form-text text-muted">
+                    ⚠️ <strong>Obrigatório:</strong> Toda restrição de acesso deve ser fundamentada em base legal
+                  </small>
+                </div>
+              </div>
+
+              <!-- Exemplos de Hipóteses Legais -->
+              <div class="row" *ngIf="formData.nivelAcesso !== 'Publico'">
+                <div class="col-12">
+                  <div class="alert alert-warning" style="font-size: 12px; padding: 10px;">
+                    <strong>📚 Exemplos de hipóteses legais:</strong>
+                    <ul class="mb-0 mt-2" style="padding-left: 20px;">
+                      <li>Lei 12.527/2011, Art. 23, I - Informações pessoais</li>
+                      <li>Lei 12.527/2011, Art. 23, II - Segredo de justiça</li>
+                      <li>Lei 12.527/2011, Art. 23, III - Sigilo comercial ou empresarial</li>
+                      <li>Lei 13.709/2018 (LGPD) - Dados pessoais sensíveis</li>
+                      <li>Lei 8.159/1991, Art. 23 - Documentos sigilosos</li>
+                    </ul>
                   </div>
                 </div>
               </div>

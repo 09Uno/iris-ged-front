@@ -30,6 +30,8 @@ import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { EditorHtmlComponent } from '@features/editor-html/editor-html.component';
 import { ToolBarComponent } from '@features/tool-bar.component/tool-bar.component';
 import { InsertDocumentComponent } from '../insert-document/insert-document.component';
+import { DocumentPermissionsModalComponent } from '../document-permissions-modal/document-permissions-modal.component';
+import { DocumentWorkflowModalComponent } from '../document-workflow-modal/document-workflow-modal.component';
 
 // Local services
 import { DocumentService } from '../../../../services/documents/document.service';
@@ -856,6 +858,149 @@ export class DocumentManagerComponent implements OnInit {
     if (this.dialogRef) {
       this.dialogRef.close();
       this.dialogRef = null;
+    }
+  }
+
+  // ========================================
+  // 🔐 PERMISSÕES E WORKFLOW
+  // ========================================
+
+  openPermissionsModal(): void {
+    if (!this.managerAttributes.documentId) {
+      alert('Nenhum documento selecionado');
+      return;
+    }
+
+    this.dialog.open(DocumentPermissionsModalComponent, {
+      width: '800px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      data: {
+        documentId: this.managerAttributes.documentId,
+        documentName: this.managerAttributes.name
+      }
+    });
+  }
+
+  openWorkflowModal(): void {
+    if (!this.managerAttributes.documentId) {
+      alert('Nenhum documento selecionado');
+      return;
+    }
+
+    this.dialog.open(DocumentWorkflowModalComponent, {
+      width: '900px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      data: {
+        documentId: this.managerAttributes.documentId,
+        documentName: this.managerAttributes.name,
+        protocol: this.selectedProtocol || this.managerAttributes.processIdentifier
+      }
+    });
+  }
+
+  async cancelDocument(): Promise<void> {
+    if (!this.managerAttributes.documentId) {
+      MessageUtil.displayErrorMessage(this, 'Nenhum documento selecionado');
+      return;
+    }
+
+    const reason = prompt(
+      `Deseja realmente cancelar o documento "${this.managerAttributes.name}"?\n\n` +
+      'Por favor, informe o motivo do cancelamento:'
+    );
+
+    if (!reason || reason.trim() === '') {
+      return;
+    }
+
+    this.uiControllers.isLoading = true;
+
+    try {
+      // Pegar userId do AuthService ou usar valor padrão
+      const userId = 1; // TODO: Implementar método para pegar userId do usuário logado
+
+      const cancelObservable = await this.documentService.cancelDocument(
+        this.managerAttributes.documentId,
+        userId,
+        reason.trim()
+      );
+
+      cancelObservable.pipe(
+        tap(() => {
+          MessageUtil.displayAlertMessage(
+            this,
+            `Documento "${this.managerAttributes.name}" cancelado com sucesso.`
+          );
+          this.managerAttributes.documentCancelled = true;
+        }),
+        catchError((error) => {
+          MessageUtil.displayErrorMessage(
+            this,
+            `Erro ao cancelar documento: ${error.message || 'Erro desconhecido'}`
+          );
+          return of(null);
+        })
+      ).subscribe(() => {
+        this.uiControllers.isLoading = false;
+      });
+    } catch (error) {
+      console.error('Erro ao cancelar documento:', error);
+      MessageUtil.displayErrorMessage(this, 'Erro ao cancelar documento');
+      this.uiControllers.isLoading = false;
+    }
+  }
+
+  async reactivateDocument(): Promise<void> {
+    if (!this.managerAttributes.documentId) {
+      MessageUtil.displayErrorMessage(this, 'Nenhum documento selecionado');
+      return;
+    }
+
+    const reason = prompt(
+      `Deseja realmente reativar o documento "${this.managerAttributes.name}"?\n\n` +
+      'Por favor, informe o motivo da reativação:'
+    );
+
+    if (!reason || reason.trim() === '') {
+      return;
+    }
+
+    this.uiControllers.isLoading = true;
+
+    try {
+      // Pegar userId do AuthService ou usar valor padrão
+      const userId = 1; // TODO: Implementar método para pegar userId do usuário logado
+
+      const reactivateObservable = await this.documentService.reactivateDocument(
+        this.managerAttributes.documentId,
+        userId,
+        reason.trim()
+      );
+
+      reactivateObservable.pipe(
+        tap(() => {
+          MessageUtil.displayAlertMessage(
+            this,
+            `Documento "${this.managerAttributes.name}" reativado com sucesso.`
+          );
+          this.managerAttributes.documentCancelled = false;
+        }),
+        catchError((error) => {
+          MessageUtil.displayErrorMessage(
+            this,
+            `Erro ao reativar documento: ${error.message || 'Erro desconhecido'}`
+          );
+          return of(null);
+        })
+      ).subscribe(() => {
+        this.uiControllers.isLoading = false;
+      });
+    } catch (error) {
+      console.error('Erro ao reativar documento:', error);
+      MessageUtil.displayErrorMessage(this, 'Erro ao reativar documento');
+      this.uiControllers.isLoading = false;
     }
   }
 

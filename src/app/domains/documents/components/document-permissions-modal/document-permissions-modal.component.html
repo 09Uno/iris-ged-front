@@ -1,0 +1,230 @@
+<div class="permissions-modal">
+  <h2 mat-dialog-title>
+    <span class="material-icons">security</span>
+    Gerenciar Permissões
+  </h2>
+
+  <mat-dialog-content>
+    <div class="permissions-modal-content">
+      <p class="document-name">{{ documentName }}</p>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2">Carregando...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="alert alert-danger">
+        <span class="material-icons me-2">error</span>
+        {{ error }}
+      </div>
+
+      <!-- Permissões -->
+      <div *ngIf="!loading && !error && permissions">
+        <!-- Owner -->
+        <div class="permission-section">
+          <h3>Proprietário</h3>
+          <div class="permission-item owner">
+            <span class="material-icons me-2">account_circle</span>
+            <div class="permission-details">
+              <strong>{{ permissions.ownerName }}</strong>
+              <p class="text-muted mb-0">Acesso total ao documento</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal Permissions -->
+        <div class="permission-section">
+          <div class="section-header">
+            <h3>Permissões Pessoais ({{ permissions.personalPermissions.length }})</h3>
+            <button mat-button color="primary" (click)="showAddPersonalForm = !showAddPersonalForm">
+              <span class="material-icons">add</span> Adicionar
+            </button>
+          </div>
+
+          <!-- Form to add personal permission -->
+          <div *ngIf="showAddPersonalForm" class="add-permission-form">
+            <select [(ngModel)]="newPersonalPermission.userId" class="form-control mb-2">
+              <option value="0">Selecione um usuário</option>
+              <option *ngFor="let user of users" [value]="user.id">
+                {{ user.name }} ({{ user.email }})
+              </option>
+            </select>
+
+            <div class="permissions-checkboxes">
+              <mat-checkbox [(ngModel)]="newPersonalPermission.canView">Visualizar</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newPersonalPermission.canEdit">Editar</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newPersonalPermission.canSign">Assinar</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newPersonalPermission.canDownload">Baixar</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newPersonalPermission.canDelete">Excluir</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newPersonalPermission.canAddAttachment">Anexos</mat-checkbox>
+            </div>
+
+            <!-- Justificativa obrigatória -->
+            <label class="mt-2 mb-1" style="font-weight: 500;">
+              Justificativa <span style="color: red;">*</span>
+            </label>
+            <textarea
+              [(ngModel)]="newPersonalPermission.justificativa"
+              placeholder="Ex: Usuário precisa consultar informações para análise do processo XYZ"
+              class="form-control mb-2"
+              rows="3"
+              required></textarea>
+            <small class="form-text text-muted mb-3">
+              ⚠️ <strong>Obrigatório:</strong> Toda concessão de permissão deve ser justificada (conforme SEI)
+            </small>
+
+            <!-- Data de validade (opcional) -->
+            <label class="mt-2 mb-1" style="font-weight: 500;">
+              Validade (Opcional)
+            </label>
+            <input type="date"
+                   [(ngModel)]="newPersonalPermission.validUntil"
+                   class="form-control mb-2">
+            <small class="form-text text-muted mb-3">
+              Se não definir, a permissão será permanente (até ser revogada)
+            </small>
+
+            <div class="form-actions">
+              <button mat-button (click)="showAddPersonalForm = false">Cancelar</button>
+              <button mat-raised-button color="primary" (click)="addPersonalPermission()">
+                Adicionar
+              </button>
+            </div>
+          </div>
+
+          <!-- List of personal permissions -->
+          <div *ngFor="let perm of permissions.personalPermissions" class="permission-item">
+            <div class="permission-details flex-grow-1">
+              <strong>{{ perm.userName || 'Usuário #' + perm.userId }}</strong>
+              <small *ngIf="perm.userEmail" class="d-block text-muted">{{ perm.userEmail }}</small>
+              <div class="permission-badges mt-1">
+                <span *ngIf="perm.canView" class="badge bg-info">Ver</span>
+                <span *ngIf="perm.canEdit" class="badge bg-warning">Editar</span>
+                <span *ngIf="perm.canSign" class="badge bg-success">Assinar</span>
+                <span *ngIf="perm.canDownload" class="badge bg-primary">Baixar</span>
+                <span *ngIf="perm.canDelete" class="badge bg-danger">Excluir</span>
+                <span *ngIf="perm.canAddAttachment" class="badge bg-secondary">Anexos</span>
+              </div>
+              <small *ngIf="perm.justificativa" class="text-muted d-block mt-1">
+                <strong>Justificativa:</strong> {{ perm.justificativa }}
+              </small>
+              <small *ngIf="perm.validUntil" class="text-muted d-block">
+                <strong>Válido até:</strong> {{ perm.validUntil | date:'dd/MM/yyyy' }}
+              </small>
+              <small *ngIf="perm.grantedByUserName" class="text-muted d-block">
+                <strong>Concedida por:</strong> {{ perm.grantedByUserName }} em {{ perm.grantedAt | date:'dd/MM/yyyy HH:mm' }}
+              </small>
+            </div>
+            <button mat-icon-button color="warn" (click)="revokePersonalPermission(perm.id)">
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+
+          <div *ngIf="permissions.personalPermissions.length === 0" class="empty-state">
+            <span class="material-icons">person_off</span>
+            <p>Nenhuma permissão pessoal configurada</p>
+          </div>
+        </div>
+
+        <!-- Sectoral Permissions -->
+        <div class="permission-section">
+          <div class="section-header">
+            <h3>Permissões Setoriais ({{ permissions.sectoralPermissions.length }})</h3>
+            <button mat-button color="primary" (click)="showAddSectoralForm = !showAddSectoralForm">
+              <span class="material-icons">add</span> Adicionar
+            </button>
+          </div>
+
+          <!-- Form to add sectoral permission -->
+          <div *ngIf="showAddSectoralForm" class="add-permission-form">
+            <select [(ngModel)]="newSectoralPermission.sectorId" class="form-control mb-2">
+              <option value="0">Selecione um setor</option>
+              <option *ngFor="let sector of sectors" [value]="sector.id">
+                {{ sector.name }} ({{ sector.acronym }})
+              </option>
+            </select>
+
+            <div class="permissions-checkboxes">
+              <mat-checkbox [(ngModel)]="newSectoralPermission.canView">Visualizar</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newSectoralPermission.canEdit">Editar</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newSectoralPermission.canSign">Assinar</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newSectoralPermission.canDownload">Baixar</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newSectoralPermission.canDelete">Excluir</mat-checkbox>
+              <mat-checkbox [(ngModel)]="newSectoralPermission.canAddAttachment">Anexos</mat-checkbox>
+            </div>
+
+            <!-- Justificativa obrigatória -->
+            <label class="mt-2 mb-1" style="font-weight: 500;">
+              Justificativa <span style="color: red;">*</span>
+            </label>
+            <textarea
+              [(ngModel)]="newSectoralPermission.justificativa"
+              placeholder="Ex: Setor precisa ter acesso para análise de processos relacionados"
+              class="form-control mb-2"
+              rows="3"
+              required></textarea>
+            <small class="form-text text-muted mb-3">
+              ⚠️ <strong>Obrigatório:</strong> Toda concessão de permissão deve ser justificada (conforme SEI)
+            </small>
+
+            <!-- Data de validade (opcional) -->
+            <label class="mt-2 mb-1" style="font-weight: 500;">
+              Validade (Opcional)
+            </label>
+            <input type="date"
+                   [(ngModel)]="newSectoralPermission.validUntil"
+                   class="form-control mb-2">
+            <small class="form-text text-muted mb-3">
+              Se não definir, a permissão será permanente (até ser revogada)
+            </small>
+
+            <div class="form-actions">
+              <button mat-button (click)="showAddSectoralForm = false">Cancelar</button>
+              <button mat-raised-button color="primary" (click)="addSectoralPermission()">
+                Adicionar
+              </button>
+            </div>
+          </div>
+
+          <!-- List of sectoral permissions -->
+          <div *ngFor="let perm of permissions.sectoralPermissions" class="permission-item">
+            <div class="permission-details flex-grow-1">
+              <strong>{{ perm.sectorName || 'Setor #' + perm.sectorId }}</strong>
+              <div class="permission-badges mt-1">
+                <span *ngIf="perm.canView" class="badge bg-info">Ver</span>
+                <span *ngIf="perm.canEdit" class="badge bg-warning">Editar</span>
+                <span *ngIf="perm.canSign" class="badge bg-success">Assinar</span>
+                <span *ngIf="perm.canDownload" class="badge bg-primary">Baixar</span>
+                <span *ngIf="perm.canDelete" class="badge bg-danger">Excluir</span>
+                <span *ngIf="perm.canAddAttachment" class="badge bg-secondary">Anexos</span>
+              </div>
+              <small *ngIf="perm.justificativa" class="text-muted d-block mt-1">
+                <strong>Justificativa:</strong> {{ perm.justificativa }}
+              </small>
+              <small *ngIf="perm.validUntil" class="text-muted d-block">
+                <strong>Válido até:</strong> {{ perm.validUntil | date:'dd/MM/yyyy' }}
+              </small>
+              <small *ngIf="perm.grantedByUserName" class="text-muted d-block">
+                <strong>Concedida por:</strong> {{ perm.grantedByUserName }} em {{ perm.grantedAt | date:'dd/MM/yyyy HH:mm' }}
+              </small>
+            </div>
+            <button mat-icon-button color="warn" (click)="revokeSectoralPermission(perm.id)">
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+
+          <div *ngIf="permissions.sectoralPermissions.length === 0" class="empty-state">
+            <span class="material-icons">business_off</span>
+            <p>Nenhuma permissão setorial configurada</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="close()">Fechar</button>
+  </mat-dialog-actions>
+</div>

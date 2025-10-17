@@ -25,15 +25,16 @@ export const defaultManagerAttributes: DocumentManagerAtributes = {
   name: '',
   processIdentifier: '',
   processIdentifierInput: '',
-  documents: null, 
+  documents: null,
   documentId: 0,
-  selectedDocument: null, 
+  selectedDocument: null,
   selectedDocumentString: '',
-  documentBlob: null, 
+  documentBlob: null,
   documentCount: 0,
   docIdEvent: 0,
   docExtEvent: '',
-  source: ''
+  source: '',
+  documentCancelled: false
 };
 
 export const defaultMessages: DocumentMessages = {

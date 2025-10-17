@@ -35,7 +35,8 @@ export interface DocumentManagerAtributes {
     documentCount: number,
     docIdEvent: number,
     docExtEvent: string,
-    source : string
+    source : string,
+    documentCancelled?: boolean
 }
 
 export interface DocumentMessages {
